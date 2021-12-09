@@ -11,7 +11,7 @@ repositories {
 
 group = 'vicious'
 
-version = '1.4.4'
+version = '1.4.6'
 
 blossom {
     replaceToken '@version@', version
@@ -46,7 +46,7 @@ publishing {
         gpr(MavenPublication) {
             groupId = 'com.vicious'
             artifactId = 'viciouslib'
-            version = "1.4.4"
+            version = "1.4.6"
             from components.java
         }
     }

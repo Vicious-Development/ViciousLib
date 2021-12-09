@@ -17,6 +17,7 @@ public abstract class CommandHandler<USERTYPE, CHANNELTYPE> {
     public void register(Command<USERTYPE,CHANNELTYPE> cmd){
         for (String identifier : cmd.getIdentifiers()) {
             commands.putIfAbsent(identifier,cmd);
+            cmd.handler=this;
         }
     }
     private Command<USERTYPE,CHANNELTYPE> getCommand(String commandLine){

@@ -14,7 +14,7 @@ public class Command<USERTYPE,CHANNELTYPE> {
     private CommandExecutor<USERTYPE,CHANNELTYPE> executor;
     private final Argument[] args;
     private Command<USERTYPE,CHANNELTYPE> parent;
-    private CommandHandler<USERTYPE,CHANNELTYPE> handler;
+    public CommandHandler<USERTYPE,CHANNELTYPE> handler;
     private Command(List<String> identifiers, String role, boolean pub, boolean priv, List<Command<USERTYPE,CHANNELTYPE>> children, CommandExecutor<USERTYPE,CHANNELTYPE> executor, Argument[] args, String description){
         minimumRole = role;
         isPrivateMessage=priv;
