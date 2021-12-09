@@ -1,0 +1,58 @@
+plugins {
+    id 'com.github.johnrengelman.shadow' version '6.1.0'
+    id "net.kyori.blossom" version "1.1.0"
+    id "maven-publish"
+}
+
+repositories {
+    jcenter()
+    maven { url 'https://jitpack.io' }
+}
+
+group = 'vicious'
+
+version = '1.4.4'
+
+blossom {
+    replaceToken '@version@', version
+}
+
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
+
+dependencies {
+    compile "org.json:json:20171018"
+    compile 'org.apache.httpcomponents:httpclient:4.5.13'
+    compile "commons-io:commons-io:2.4"
+    compile "com.rabbitmq:amqp-client:5.10.0"
+    compile "mysql:mysql-connector-java:8.0.19"
+    compile "com.google.guava:guava:16+"
+    compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.14.1'
+    compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.14.1'
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "ViciousLib"
+            url = uri("https://maven.pkg.github.com/Vicious-MCModding/ViciousLib")
+            credentials {
+                username = project.findProperty("gpr.user") ?: System.getenv("GPR_USER")
+                password = project.findProperty("gpr.key") ?: System.getenv("GPR_API_KEY")
+            }
+        }
+    }
+    publications {
+        gpr(MavenPublication) {
+            groupId = 'com.vicious'
+            artifactId = 'viciouslib'
+            version = "1.4.4"
+            from components.java
+        }
+    }
+}
+
+shadowJar {
+    archiveFileName = "ViciousLib-${version}.jar"
+}
+compileJava.options.encoding = 'UTF-8'
