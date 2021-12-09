@@ -2,8 +2,6 @@
 ====================
 
 # Information
-Originally a server plugin library I created for a variety of applications, now a public library. Play on frozensoul.
-
 Provides:
 command - Provides a system similar to SpongeForge's command system but for more generic purposes. This system assumes there is some sort of User and Channel types in your project, however what is a user and and channel is up to you.
 How to implement:
