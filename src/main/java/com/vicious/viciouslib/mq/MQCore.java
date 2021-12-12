@@ -27,7 +27,7 @@ public class MQCore {
     private Connection connection;
     private MQListener listener;
     public MQMessageHandler handler;
-    private MQWatchdog watchdog;
+    public MQWatchdog watchdog;
     public Channel tx;
     public Channel rx;
 

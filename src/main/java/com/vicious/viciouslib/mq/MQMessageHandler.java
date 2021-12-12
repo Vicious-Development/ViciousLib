@@ -10,8 +10,8 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 public class MQMessageHandler {
-    public static Map<String, Consumer<ByteArrayDataInput>> handlerMap = new HashMap<>();
-    public static void register(String identifier, Consumer<ByteArrayDataInput> consumer){
+    public Map<String, Consumer<ByteArrayDataInput>> handlerMap = new HashMap<>();
+    public void register(String identifier, Consumer<ByteArrayDataInput> consumer){
         if(handlerMap.putIfAbsent(identifier,consumer) != null){
             throw new IllegalArgumentException("MQMessageHandler: " + identifier + " has already been registered");
         }
