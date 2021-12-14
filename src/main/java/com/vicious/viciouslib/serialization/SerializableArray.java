@@ -1,6 +1,7 @@
 package com.vicious.viciouslib.serialization;
 
-import org.apache.logging.log4j.util.TriConsumer;
+
+import com.vicious.viciouslib.util.TriConsumer;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;

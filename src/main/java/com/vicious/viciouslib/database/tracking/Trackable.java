@@ -64,6 +64,7 @@ public abstract class Trackable<T extends Trackable<T>> {
     }
     public void markDirty(String variablename, Object var){
         dirtyMap.add(variablename,var);
+        validateHandler();
         handler.queueUpdate(this);
     }
     public static void setHandler(TrackingHandler instance) {
@@ -194,5 +195,8 @@ public abstract class Trackable<T extends Trackable<T>> {
             e.printStackTrace();
         }
         return null;
+    }
+    protected void validateHandler() {
+        if(handler == null) handler = DefaultTrackingHandler.getInstance();
     }
 }

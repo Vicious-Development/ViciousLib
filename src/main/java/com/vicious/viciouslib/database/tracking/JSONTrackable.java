@@ -34,6 +34,7 @@ public class JSONTrackable<T extends JSONTrackable<T>> extends Trackable<T>{
     @Override
     public void markDirty(String variablename, Object var) {
         jsonObj.put(variablename,var);
+        validateHandler();
         handler.queueJSONUpdate(this);
     }
 

@@ -18,7 +18,7 @@ public class Database {
         this.USER=USER;
         this.PASS=PASS;
         openConnection();
-        DefaultTrackingHandler.init(this);
+        DefaultTrackingHandler.initWithDatabase(this);
     }
 
     // Opens a connection to the mysql database

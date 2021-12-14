@@ -11,7 +11,7 @@ repositories {
 
 group = 'vicious'
 
-version = '1.4.8'
+version = '1.5.2'
 
 blossom {
     replaceToken '@version@', version
@@ -21,14 +21,12 @@ sourceCompatibility = '1.8'
 targetCompatibility = '1.8'
 
 dependencies {
-    compile "org.json:json:20171018"
-    compile 'org.apache.httpcomponents:httpclient:4.5.13'
-    compile "commons-io:commons-io:2.4"
-    compile "com.rabbitmq:amqp-client:5.10.0"
-    compile "mysql:mysql-connector-java:8.0.19"
-    compile "com.google.guava:guava:16+"
-    compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.14.1'
-    compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.14.1'
+    compileOnly "org.json:json:20211205"
+    compileOnly 'org.apache.httpcomponents:httpclient:4.5.13'
+    compileOnly "commons-io:commons-io:2.11.0"
+    compile "com.rabbitmq:amqp-client:5.14.0"
+    compile "mysql:mysql-connector-java:8.0.27"
+    compileOnly "com.google.guava:guava:31+"
 }
 
 publishing {
@@ -46,7 +44,7 @@ publishing {
         gpr(MavenPublication) {
             groupId = 'com.vicious'
             artifactId = 'viciouslib'
-            version = "1.4.8"
+            version = "1.5.2"
             from components.java
         }
     }
