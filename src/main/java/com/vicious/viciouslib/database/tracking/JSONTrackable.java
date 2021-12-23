@@ -3,33 +3,28 @@ package com.vicious.viciouslib.database.tracking;
 import com.vicious.viciouslib.database.sqlcomponents.SQLCommand;
 import com.vicious.viciouslib.database.tracking.values.TrackableValue;
 import com.vicious.viciouslib.util.FileUtil;
+import com.vicious.viciouslib.util.VLUtil;
 import org.json.JSONObject;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 
 //JSON Trackables have support for updating JSON objects.
 public class JSONTrackable<T extends JSONTrackable<T>> extends Trackable<T>{
     protected JSONObject jsonObj = new JSONObject();
-    public JSONTrackable(Path p){
-        PATH = p;
-        Executors.newScheduledThreadPool(1).schedule(()->{
-            readFromJSON();
-        },1, TimeUnit.SECONDS);
+    public JSONTrackable(String path){
+        this(FileUtil.toPath(path));
     }
-    public JSONTrackable(Path p, Runnable onInit){
-        PATH = p;
-        Executors.newScheduledThreadPool(1).schedule(()->{
-            readFromJSON();
-            onInit.run();
-        },1, TimeUnit.SECONDS);
+    public JSONTrackable(Path path) {
+        PATH=path;
+        if(!Files.exists(path)) {
+            VLUtil.executeWhen((t) -> VLUtil.mightBeInitialized(TrackableValue.class, t), JSONTrackable::overWriteFile, this);
+        }
+        else readFromJSON();
     }
-
     public final Path PATH;
     @Override
     public void markDirty(String variablename, Object var) {

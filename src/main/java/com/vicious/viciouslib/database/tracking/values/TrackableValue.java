@@ -1,6 +1,6 @@
 package com.vicious.viciouslib.database.tracking.values;
 
-import com.vicious.viciouslib.util.VCUtil;
+import com.vicious.viciouslib.util.VLUtil;
 import com.vicious.viciouslib.database.objectTypes.LongText;
 import com.vicious.viciouslib.database.objectTypes.MediumText;
 import com.vicious.viciouslib.database.tracking.interfaces.SQLConverter;
@@ -43,7 +43,7 @@ public abstract class TrackableValue<T> {
 
     static {
         //For when .toString isn't enough (SQL syntax does not support certain date formats, and doesn't autoconvert booleans).
-        sqlconverters.put(Date.class, VCUtil.DATEFORMAT::format);
+        sqlconverters.put(Date.class, VLUtil.DATEFORMAT::format);
         sqlconverters.put(MediumText.class, (t)-> t.toString().replaceAll("'","''"));
         sqlconverters.put(LongText.class, (t)-> t.toString().replaceAll("'","''"));
         sqlconverters.put(String.class, (t)-> t.toString().replaceAll("'","''"));

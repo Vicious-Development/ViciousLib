@@ -2,7 +2,7 @@ package com.vicious.viciouslib.database.tracking.values;
 
 import com.vicious.viciouslib.database.tracking.Trackable;
 import com.vicious.viciouslib.serialization.SerializationUtil;
-import com.vicious.viciouslib.util.VCUtil;
+import com.vicious.viciouslib.util.VLUtil;
 import org.json.JSONObject;
 
 import java.sql.ResultSet;
@@ -53,7 +53,7 @@ public class TrackableListValue<T extends List<V>,V> extends TrackableObject<T>{
     private List<V> parseList(String in) {
         String val = "";
         List<V> objs = new ArrayList<>();
-        if(VCUtil.isEmptyOrNull(in)) return objs;
+        if(VLUtil.isEmptyOrNull(in)) return objs;
         for (int i = 0; i < in.length(); i++) {
             char c = in.charAt(i);
             if(c == ',' || c == ']'){

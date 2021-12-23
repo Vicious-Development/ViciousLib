@@ -2,7 +2,7 @@ package com.vicious.viciouslib.serialization;
 
 
 import com.vicious.viciouslib.database.tracking.interfaces.TrackableValueStringParser;
-import com.vicious.viciouslib.util.VCUtil;
+import com.vicious.viciouslib.util.VLUtil;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -27,7 +27,7 @@ public class SerializationUtil {
         stringparsers.put(Long.class, Long::parseLong);
         stringparsers.put(String.class,(j)-> j);
         stringparsers.put(UUID.class, UUID::fromString);
-        stringparsers.put(Date.class, VCUtil.DATEFORMAT::parse);
+        stringparsers.put(Date.class, VLUtil.DATEFORMAT::parse);
     }
     static {
         specialserializers.put(SerializableArray.class,(o,exdat)-> ((SerializableArray<?>)o).serialize(exdat));

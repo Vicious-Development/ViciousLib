@@ -17,27 +17,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 
 public class JSONConfig extends JSONTrackable<JSONConfig> {
-    public static Map<Path, JSONConfig> temp = new HashMap<>();
-    public static Map<String, JSONConfig> namedInstances = new HashMap<>();
 
-    public JSONConfig(Path f) {
-        super(f, ()->{
-            temp.get(f).overWriteFile();
-            temp.remove(f);
-        });
-        temp.put(f,this);
+    public JSONConfig(String f) {
+        super(f);
     }
-    public JSONConfig(Path f, String modid, String configName) {
-        super(f, ()->{
-            temp.get(f).overWriteFile();
-            temp.remove(f);
-        });
-        temp.put(f,this);
-        namedInstances.put(modid + ":" + configName,this);
+    public JSONConfig(Path p) {
+        super(p);
     }
 
     public void save() {

@@ -7,8 +7,8 @@ import java.nio.file.Path;
 
 public class LibCFG extends JSONConfig {
     private static LibCFG instance;
-    private LibCFG(Path f){
-        super(f);
+    private LibCFG(Path p){
+        super(p);
     }
     public static LibCFG getInstance(){
         if(instance == null) instance = new LibCFG(LibConstants.libConfigPath);

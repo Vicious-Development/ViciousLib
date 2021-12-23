@@ -1,5 +1,8 @@
 package com.vicious.viciouslib.util;
 
+import com.vicious.viciouslib.database.tracking.JSONTrackable;
+
+import java.lang.reflect.Field;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
@@ -7,8 +10,12 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
-public class VCUtil {
+public class VLUtil {
     public static final DateFormat DATEFORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     public static boolean isEmptyOrNull(Object s){
@@ -57,5 +64,27 @@ public class VCUtil {
 
     public static int subtractOrZero(int value, int subtractor) {
         return Math.max(value - subtractor, 0);
+    }
+    public static <T> void executeWhen(Predicate<T> predicator, Consumer<T> runnable, T t){
+        Executors.newScheduledThreadPool(1).scheduleAtFixedRate(()->{if(predicator.test(t)) runnable.accept(t);},50,50, TimeUnit.SECONDS);
+    }
+
+    public static <T extends JSONTrackable<T>> boolean mightBeInitialized(Class<?> targetFieldClass, Object target) {
+        for (Field declaredField : target.getClass().getDeclaredFields()) {
+            if(isSubclassOfOrEqualTo(targetFieldClass,declaredField.getType())){
+                try {
+                    if (declaredField.get(target) == null) return false;
+                } catch(IllegalAccessException ignored){}
+            }
+        }
+        return true;
+    }
+    public static boolean isSubclassOfOrEqualTo(Class<?> expected, Class<?> actual){
+        if(actual.equals(expected)) return true;
+        while(actual.getSuperclass() != null){
+            actual = actual.getSuperclass();
+            if(actual.equals(expected)) return true;
+        }
+        return false;
     }
 }

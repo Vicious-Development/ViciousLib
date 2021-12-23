@@ -8,7 +8,7 @@ import com.vicious.viciouslib.database.tracking.interfaces.TrackableValueConvert
 import com.vicious.viciouslib.database.tracking.interfaces.TrackableValueJSONParser;
 import com.vicious.viciouslib.database.tracking.interfaces.TrackableValueSQLParser;
 import com.vicious.viciouslib.serialization.SerializationUtil;
-import com.vicious.viciouslib.util.VCUtil;
+import com.vicious.viciouslib.util.VLUtil;
 import org.json.JSONObject;
 
 import java.sql.ResultSet;
@@ -34,7 +34,7 @@ public class TrackableObject<T> extends TrackableValue<T> {
         sqlparsers.put(UUID.class,(r, t)->UUID.fromString(r.getString(t.name)));
         sqlparsers.put(MediumText.class,(r, t)->new MediumText(r.getString(t.name)));
         sqlparsers.put(LongText.class,(r, t)->new LongText(r.getString(t.name)));
-        sqlparsers.put(Date.class,(r, t)-> VCUtil.DATEFORMAT.parse(r.getString(t.name)));
+        sqlparsers.put(Date.class,(r, t)-> VLUtil.DATEFORMAT.parse(r.getString(t.name)));
         sqlparsers.put(SQLVector3i.class,(r, t)->SQLVector3i.parseVector3i(r.getString(t.name)));
     }
 
@@ -51,7 +51,7 @@ public class TrackableObject<T> extends TrackableValue<T> {
         jsonparsers.put(UUID.class,(j, t)->UUID.fromString(j.getString(t.name)));
         jsonparsers.put(MediumText.class,(j, t)->new MediumText(j.getString(t.name)));
         jsonparsers.put(LongText.class,(j, t)->new LongText(j.getString(t.name)));
-        jsonparsers.put(Date.class,(j, t)-> VCUtil.DATEFORMAT.parse(j.getString(t.name)));
+        jsonparsers.put(Date.class,(j, t)-> VLUtil.DATEFORMAT.parse(j.getString(t.name)));
         jsonparsers.put(SQLVector3i.class,(j, t)->SQLVector3i.parseVector3i(j.getString(t.name)));
     }
     //Some objects don't get converted into SQL language properly, registering a SQLConverter ensures that the string provided is compatible.
