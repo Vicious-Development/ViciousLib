@@ -33,7 +33,7 @@ public class TrackingHandler {
             while (count < 5) {
                 count++;
                 if (dirtyJsons.size() <= 0) break;
-                dirtyJsons.peek().overWriteFile();
+                dirtyJsons.peek().save();
                 dirtyJsons.pop();
             }
             tick();

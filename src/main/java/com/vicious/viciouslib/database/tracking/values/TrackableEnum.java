@@ -15,8 +15,7 @@ public class TrackableEnum<T extends Enum<T>> extends TrackableValue<T> {
     public TrackableEnum<T> setFromSQL(ResultSet rs) throws Exception{
         try {
             this.setWithoutUpdate(Enum.valueOf(type,rs.getString(name)));
-        } catch(Exception e){
-            throw e;
+        } catch(Exception ignored){
         }
         this.convert();
         return this;
@@ -24,8 +23,7 @@ public class TrackableEnum<T extends Enum<T>> extends TrackableValue<T> {
     public TrackableEnum<T> setFromJSON(JSONObject jo) throws Exception{
         try {
             this.setWithoutUpdate(jo.getEnum(type,name));
-        } catch(Exception e){
-            throw e;
+        } catch(Exception ignored){
         }
         this.convert();
         return this;
@@ -33,8 +31,7 @@ public class TrackableEnum<T extends Enum<T>> extends TrackableValue<T> {
     public TrackableEnum<T> setFromStringWithUpdate(String s) throws Exception{
         try {
             this.set(Enum.valueOf(type,s));
-        } catch(Exception e){
-            this.set(null);
+        } catch(Exception ignored){
         }
         this.convert();
         return this;
@@ -42,8 +39,7 @@ public class TrackableEnum<T extends Enum<T>> extends TrackableValue<T> {
     public TrackableEnum<T> setFromStringWithoutUpdate(String s) {
         try {
             this.setWithoutUpdate(Enum.valueOf(type,s));
-        } catch(Exception e){
-            this.setWithoutUpdate(null);
+        } catch(Exception ignored){
         }
         this.convert();
         return this;

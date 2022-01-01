@@ -27,10 +27,13 @@ public class JSONConfig extends JSONTrackable<JSONConfig> {
     public JSONConfig(Path p) {
         super(p);
     }
-
-    public void save() {
-        overWriteFile();
+    public JSONConfig(String f, TrackableValue<?>... extraValues) {
+        super(f,extraValues);
     }
+    public JSONConfig(Path p, TrackableValue<?>... extraValues) {
+        super(p,extraValues);
+    }
+
     public void overWriteFile() {
         StringWriter writer = new StringWriter();
         writer.write("{");
@@ -39,7 +42,10 @@ public class JSONConfig extends JSONTrackable<JSONConfig> {
             try {
                 TrackableValue<?> value = vals[i];
                 writer.append("\n");
-                if(value.value() == null) continue;
+                if(value.value() == null) {
+                    writer.append(((ConfigurationValue<?>) value).getTab() + '"' + value.name + '"' + ": ");
+                    writeValue(writer,null,0,0);
+                }
                 if (value instanceof ConfigurationValue<?>) {
                     writer.append(((ConfigurationValue<?>) value).getTab() + '"' + value.name + '"' + ": ");
                     writeValue(writer,((ConfigurationValue<?>) value).getStopValue(),0,0);

@@ -16,6 +16,11 @@ import java.util.function.Supplier;
 
 public abstract class Trackable<T extends Trackable<T>> {
     protected static TrackingHandler handler;
+    public Trackable(TrackableValue<?>... extraValues){
+        for (TrackableValue<?> extraValue : extraValues) {
+            values.put(extraValue.name,extraValue);
+        }
+    }
     protected SQLMappedVariable dirtyMap = new SQLMappedVariable();
     public final Map<String, TrackableValue<?>> values = new LinkedHashMap<>();
 

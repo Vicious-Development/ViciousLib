@@ -10,22 +10,44 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.concurrent.ScheduledFuture;
 
 
 //JSON Trackables have support for updating JSON objects.
 public class JSONTrackable<T extends JSONTrackable<T>> extends Trackable<T>{
+    private ScheduledFuture<?> readWriteTask;
     protected JSONObject jsonObj = new JSONObject();
+    public JSONTrackable(String path ,TrackableValue<?>... extraValues){
+        this(FileUtil.toPath(path), extraValues);
+    }
+    public JSONTrackable(Path path, TrackableValue<?>... extraValues){
+        super(extraValues);
+        PATH=path;
+        if(!Files.exists(path)) {
+            readWriteTask = VLUtil.executeWhen((t) -> VLUtil.mightBeInitialized(TrackableValue.class, t), JSONTrackable::overWriteFile, this);
+        }
+        else {
+            readWriteTask = VLUtil.executeWhen((t) -> VLUtil.mightBeInitialized(TrackableValue.class, t), JSONTrackable::readFromJSON, this);
+        }
+    }
     public JSONTrackable(String path){
         this(FileUtil.toPath(path));
     }
     public JSONTrackable(Path path) {
         PATH=path;
         if(!Files.exists(path)) {
-            VLUtil.executeWhen((t) -> VLUtil.mightBeInitialized(TrackableValue.class, t), JSONTrackable::overWriteFile, this);
+            readWriteTask = VLUtil.executeWhen((t) -> VLUtil.mightBeInitialized(TrackableValue.class, t), JSONTrackable::overWriteFile, this);
         }
-        else readFromJSON();
+        else {
+            readWriteTask = VLUtil.executeWhen((t) -> VLUtil.mightBeInitialized(TrackableValue.class, t), JSONTrackable::readFromJSON, this);
+        }
     }
     public final Path PATH;
+    public void save(){
+        if(readWriteTask != null) readWriteTask.cancel(false);
+        overWriteFile();
+        if(readWriteTask != null) readWriteTask = null;
+    }
     @Override
     public void markDirty(String variablename, Object var) {
         jsonObj.put(variablename,var);
@@ -50,6 +72,7 @@ public class JSONTrackable<T extends JSONTrackable<T>> extends Trackable<T>{
         }
     }
     public JSONTrackable<T> readFromJSON(){
+        if(readWriteTask != null) readWriteTask.cancel(false);
         try {
             JSONObject obj = FileUtil.loadJSON(PATH);
             for (TrackableValue<?> value : values.values()) {
@@ -62,6 +85,7 @@ public class JSONTrackable<T extends JSONTrackable<T>> extends Trackable<T>{
                 e.printStackTrace();
             }
         }
+        if(readWriteTask != null) readWriteTask = null;
         return this;
     }
 }

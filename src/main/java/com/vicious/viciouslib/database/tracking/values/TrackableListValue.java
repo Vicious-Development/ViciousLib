@@ -33,8 +33,7 @@ public class TrackableListValue<T extends List<V>,V> extends TrackableObject<T>{
             Class<? super T> typetouse = type.getSuperclass();
             if(typetouse == null) typetouse = type;
             this.setWithoutUpdate((T) parseList(rs.getString(name)));
-        } catch(Exception e){
-            this.setWithoutUpdate(null);
+        } catch(Exception ignored){
         }
         this.convert();
         return this;
@@ -44,8 +43,7 @@ public class TrackableListValue<T extends List<V>,V> extends TrackableObject<T>{
             Class<? super T> typetouse = type.getSuperclass();
             if(typetouse == null) typetouse = type;
             this.setWithoutUpdate((T) parseList(jo.getString(name)));
-        } catch(Exception e){
-            this.setWithoutUpdate(null);
+        } catch(Exception ignored){
         }
         this.convert();
         return this;

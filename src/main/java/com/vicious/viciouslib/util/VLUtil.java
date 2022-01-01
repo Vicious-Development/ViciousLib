@@ -6,11 +6,9 @@ import java.lang.reflect.Field;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -65,8 +63,11 @@ public class VLUtil {
     public static int subtractOrZero(int value, int subtractor) {
         return Math.max(value - subtractor, 0);
     }
-    public static <T> void executeWhen(Predicate<T> predicator, Consumer<T> runnable, T t){
-        Executors.newScheduledThreadPool(1).scheduleAtFixedRate(()->{if(predicator.test(t)) runnable.accept(t);},50,50, TimeUnit.SECONDS);
+    public static <T> ScheduledFuture<?> executeWhen(Predicate<T> predicator, Consumer<T> runnable, T t){
+        return Executors.newScheduledThreadPool(1).scheduleAtFixedRate(()->{
+            if(predicator.test(t)) {
+                runnable.accept(t);
+            } },50,50, TimeUnit.MILLISECONDS);
     }
 
     public static <T extends JSONTrackable<T>> boolean mightBeInitialized(Class<?> targetFieldClass, Object target) {

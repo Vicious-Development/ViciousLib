@@ -76,8 +76,7 @@ public class TrackableObject<T> extends TrackableValue<T> {
     public TrackableObject<T> setFromSQL(ResultSet rs) throws Exception{
         try {
             this.setWithoutUpdate(((TrackableValueSQLParser<T>) sqlparsers.get(type)).parse(rs, this));
-        } catch(Exception e){
-            this.setWithoutUpdate(null);
+        } catch(Exception ignored){
         }
         this.convert();
         return this;
@@ -85,8 +84,7 @@ public class TrackableObject<T> extends TrackableValue<T> {
     public TrackableObject<T> setFromJSON(JSONObject jo) {
         try {
             this.setWithoutUpdate(((TrackableValueJSONParser<T>) jsonparsers.get(type)).parse(jo, this));
-        } catch(Exception e){
-            this.setWithoutUpdate(null);
+        } catch(Exception ignored){
         }
         this.convert();
         return this;
@@ -94,8 +92,7 @@ public class TrackableObject<T> extends TrackableValue<T> {
     public TrackableObject<T> setFromStringWithUpdate(String s) throws Exception{
         try {
             this.set((T) SerializationUtil.parse(type,s));
-        } catch(Exception e){
-            this.set(null);
+        } catch(Exception ignored){
         }
         this.convert();
         return this;
@@ -103,8 +100,7 @@ public class TrackableObject<T> extends TrackableValue<T> {
     public TrackableObject<T> setFromStringWithoutUpdate(String s) {
         try {
             this.setWithoutUpdate((T) SerializationUtil.parse(type,s));
-        } catch(Exception e){
-            this.setWithoutUpdate(null);
+        } catch(Exception ignored){
         }
         this.convert();
         return this;
