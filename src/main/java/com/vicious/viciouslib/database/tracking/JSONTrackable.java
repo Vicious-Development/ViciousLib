@@ -24,7 +24,7 @@ public class JSONTrackable<T extends JSONTrackable<T>> extends Trackable<T>{
         super(extraValues);
         PATH=path;
         if(!Files.exists(path)) {
-            readWriteTask = VLUtil.executeWhen((t) -> VLUtil.mightBeInitialized(TrackableValue.class, t), JSONTrackable::overWriteFile, this);
+            readWriteTask = VLUtil.executeWhen((t) -> VLUtil.mightBeInitialized(TrackableValue.class, t), JSONTrackable::save, this);
         }
         else {
             readWriteTask = VLUtil.executeWhen((t) -> VLUtil.mightBeInitialized(TrackableValue.class, t), JSONTrackable::readFromJSON, this);
@@ -36,7 +36,7 @@ public class JSONTrackable<T extends JSONTrackable<T>> extends Trackable<T>{
     public JSONTrackable(Path path) {
         PATH=path;
         if(!Files.exists(path)) {
-            readWriteTask = VLUtil.executeWhen((t) -> VLUtil.mightBeInitialized(TrackableValue.class, t), JSONTrackable::overWriteFile, this);
+            readWriteTask = VLUtil.executeWhen((t) -> VLUtil.mightBeInitialized(TrackableValue.class, t), JSONTrackable::save, this);
         }
         else {
             readWriteTask = VLUtil.executeWhen((t) -> VLUtil.mightBeInitialized(TrackableValue.class, t), JSONTrackable::readFromJSON, this);
