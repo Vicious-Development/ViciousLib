@@ -10,11 +10,20 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ScheduledFuture;
+import java.util.function.Consumer;
 
 
 //JSON Trackables have support for updating JSON objects.
 public class JSONTrackable<T extends JSONTrackable<T>> extends Trackable<T>{
+    private List<Consumer<JSONTrackable<T>>> initalizationListeners = new ArrayList<>();
+    private boolean initialized = false;
+    public void executeIfInitialized(Consumer<JSONTrackable<T>> consumer){
+        initalizationListeners.add(consumer);
+        if(initialized) onInitialization();
+    }
     private ScheduledFuture<?> readWriteTask;
     protected JSONObject jsonObj = new JSONObject();
     public JSONTrackable(String path ,TrackableValue<?>... extraValues){
@@ -43,8 +52,16 @@ public class JSONTrackable<T extends JSONTrackable<T>> extends Trackable<T>{
         }
     }
     public final Path PATH;
+    public void onInitialization(){
+        if(readWriteTask != null && !readWriteTask.isCancelled()) readWriteTask.cancel(false);
+        for (Consumer<JSONTrackable<T>> consumer : initalizationListeners) {
+            consumer.accept(this);
+        }
+        initalizationListeners.clear();
+        initialized=true;
+    }
     public void save(){
-        if(readWriteTask != null) readWriteTask.cancel(false);
+        if(readWriteTask != null) onInitialization();
         overWriteFile();
         if(readWriteTask != null) readWriteTask = null;
     }
@@ -72,7 +89,7 @@ public class JSONTrackable<T extends JSONTrackable<T>> extends Trackable<T>{
         }
     }
     public JSONTrackable<T> readFromJSON(){
-        if(readWriteTask != null) readWriteTask.cancel(false);
+        if(readWriteTask != null) onInitialization();
         try {
             JSONObject obj = FileUtil.loadJSON(PATH);
             for (TrackableValue<?> value : values.values()) {
