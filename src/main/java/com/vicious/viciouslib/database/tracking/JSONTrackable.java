@@ -19,10 +19,18 @@ import java.util.function.Consumer;
 //JSON Trackables have support for updating JSON objects.
 public class JSONTrackable<T extends JSONTrackable<T>> extends Trackable<T>{
     private List<Consumer<JSONTrackable<T>>> initalizationListeners = new ArrayList<>();
+    private List<Consumer<JSONTrackable<T>>> readListeners = new ArrayList<>();
+    private List<Consumer<JSONTrackable<T>>> writeListeners = new ArrayList<>();
     private boolean initialized = false;
     public void executeIfInitialized(Consumer<JSONTrackable<T>> consumer){
         initalizationListeners.add(consumer);
         if(initialized) onInitialization();
+    }
+    public void executeOnRead(Consumer<JSONTrackable<T>> consumer){
+        readListeners.add(consumer);
+    }
+    public void executeOnWrite(Consumer<JSONTrackable<T>> consumer){
+        writeListeners.add(consumer);
     }
     private ScheduledFuture<?> readWriteTask;
     protected JSONObject jsonObj = new JSONObject();
@@ -63,6 +71,9 @@ public class JSONTrackable<T extends JSONTrackable<T>> extends Trackable<T>{
     public void save(){
         if(readWriteTask != null) onInitialization();
         overWriteFile();
+        for (Consumer<JSONTrackable<T>> writeListener : writeListeners) {
+            writeListener.accept(this);
+        }
         if(readWriteTask != null) readWriteTask = null;
     }
     @Override
@@ -101,6 +112,9 @@ public class JSONTrackable<T extends JSONTrackable<T>> extends Trackable<T>{
                 System.err.println("Failed to read a jsontrackable " + getClass().getCanonicalName() + " caused by: " + e.getMessage());
                 e.printStackTrace();
             }
+        }
+        for (Consumer<JSONTrackable<T>> readListener : readListeners) {
+            readListener.accept(this);
         }
         if(readWriteTask != null) readWriteTask = null;
         return this;
