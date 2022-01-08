@@ -15,9 +15,12 @@ public class MQCore {
     private static MQCore instance;
 
     private MQCore(){
-
-        if(LibCFG.getInstance().mqEnabled.getBoolean()) start();
-        handler = new MQMessageHandler();
+        LibCFG.getInstance().executeIfInitialized((t)->{
+            if(LibCFG.getInstance().mqEnabled.getBoolean()){
+                start();
+                handler = new MQMessageHandler();
+            }
+        });
     }
     public static MQCore getInstance(){
         if(instance == null){
