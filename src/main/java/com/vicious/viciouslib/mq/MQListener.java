@@ -1,7 +1,8 @@
 package com.vicious.viciouslib.mq;
 
-import com.vicious.viciouslib.LibCFG;
 import com.rabbitmq.client.*;
+import com.vicious.viciouslib.LibCFG;
+import com.vicious.viciouslib.LoggerWrapper;
 
 import java.io.IOException;
 
@@ -25,15 +26,15 @@ public class MQListener {
                     try {
                         MQCore.getInstance().handler.handleMessage(body);
                     } catch (Exception ex) {
-                        System.err.println("Couldn't handle MQ message @ handleDelivery()" + ex.getMessage());
+                        LoggerWrapper.logError("Couldn't handle MQ message @ handleDelivery()" + ex.getMessage());
                         ex.printStackTrace();
                     }
                 }
             };
             rx.basicConsume(LibCFG.getInstance().universalName.value(), true, consumer);
-            System.out.println("MQ Listener Consumer Established");
+            LoggerWrapper.logInfo("MQ Listener Consumer Established");
         } catch (Exception ex) {
-            System.err.println("MQ Consumer Establishment Failed!" + ex.getMessage());
+            LoggerWrapper.logError("MQ Consumer Establishment Failed!" + ex.getMessage());
             ex.printStackTrace();
         }
     }

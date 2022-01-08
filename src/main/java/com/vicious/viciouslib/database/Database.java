@@ -1,8 +1,9 @@
 package com.vicious.viciouslib.database;
 
+import com.vicious.viciouslib.LoggerWrapper;
+import com.vicious.viciouslib.database.sqlcomponents.*;
 import com.vicious.viciouslib.database.tracking.DefaultTrackingHandler;
 import com.vicious.viciouslib.database.tracking.Trackable;
-import com.vicious.viciouslib.database.sqlcomponents.*;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -44,7 +45,7 @@ public class Database {
             statement.execute(sqlCmd);
             statement.close();
         } catch(SQLException e){
-            System.err.println(e.getMessage());
+            LoggerWrapper.logError(e.getMessage());
             e.printStackTrace();
         }
     }

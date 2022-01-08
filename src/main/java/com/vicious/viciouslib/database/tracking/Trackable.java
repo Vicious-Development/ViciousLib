@@ -1,8 +1,9 @@
 package com.vicious.viciouslib.database.tracking;
 
+import com.vicious.viciouslib.LoggerWrapper;
+import com.vicious.viciouslib.database.sqlcomponents.*;
 import com.vicious.viciouslib.database.tracking.values.TrackableValue;
 import com.vicious.viciouslib.staticinheritance.StaticField;
-import com.vicious.viciouslib.database.sqlcomponents.*;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -43,7 +44,7 @@ public abstract class Trackable<T extends Trackable<T>> {
         try {
             return SQLCommands.INSERTINTOLOCATION(sqlVarList(), SQLCommandPart.of(StaticField.get(this.getClass(), String.class, "tablename")), new SQLListVariable(toSQLStrings(values.values().toArray(new TrackableValue[0]))));
         } catch (Exception e){
-            System.err.println(e.getMessage());
+            LoggerWrapper.logError(e.getMessage());
             e.printStackTrace();
         }
         return null;
@@ -80,7 +81,7 @@ public abstract class Trackable<T extends Trackable<T>> {
             handler.getDB().safeExecute(getSQLUpdateCommand(),this);
             dirtyMap.clear();
         } catch(SQLException e){
-            System.err.println("Failed to update a tracked object: " + e);
+            LoggerWrapper.logError("Failed to update a tracked object: " + e);
         }
     }
     protected Integer getNewIntID(String tableName) {
@@ -94,7 +95,7 @@ public abstract class Trackable<T extends Trackable<T>> {
             resultSet.close();
             //resultSet.close();
         } catch (Exception ex) {
-            System.err.println("Failed to get an id " + ex);
+            LoggerWrapper.logError("Failed to get an id " + ex);
             ex.printStackTrace();
         }
         return transactionID;
@@ -115,7 +116,7 @@ public abstract class Trackable<T extends Trackable<T>> {
         try {
             rs = handler.getDB().safeExecuteQuery(sql, supplier.get(), 0);
         } catch(SQLException e){
-            System.err.println(e.getMessage());
+            LoggerWrapper.logError(e.getMessage());
             e.printStackTrace();
         }
         if(rs == null) return null;
@@ -126,7 +127,7 @@ public abstract class Trackable<T extends Trackable<T>> {
             rs.close();
         }
         catch(SQLException e){
-            System.err.println(e.getMessage());
+            LoggerWrapper.logError(e.getMessage());
             e.printStackTrace();
         }
         return null;
@@ -136,7 +137,7 @@ public abstract class Trackable<T extends Trackable<T>> {
         try {
             rs = handler.getDB().safeExecuteQuery(sql, supplier.get(), 0);
         } catch(SQLException e){
-            System.err.println(e.getMessage());
+            LoggerWrapper.logError(e.getMessage());
             e.printStackTrace();
         }
         List<T> lst = new ArrayList<>();
@@ -148,7 +149,7 @@ public abstract class Trackable<T extends Trackable<T>> {
             rs.close();
         }
         catch(SQLException e){
-            System.err.println(e.getMessage());
+            LoggerWrapper.logError(e.getMessage());
             e.printStackTrace();
         }
         return lst;
@@ -177,7 +178,7 @@ public abstract class Trackable<T extends Trackable<T>> {
             try {
                 values.get(s).setFromSQL(rs);
             } catch(Exception e){
-                System.err.println("Failed to set a trackablevalue. Caused by:" + e);
+                LoggerWrapper.logError("Failed to set a trackablevalue. Caused by:" + e);
                 e.printStackTrace();
             }
         }
@@ -196,7 +197,7 @@ public abstract class Trackable<T extends Trackable<T>> {
         try {
             return SQLCommands.UPDATEINLOCATION(new SQLMappedVariable().add(value.name, value.value()),SQLCommandPart.of(StaticField.get(template.getClass(), String.class, "tablename")));
         } catch (Exception e){
-            System.err.println(e.getMessage());
+            LoggerWrapper.logError(e.getMessage());
             e.printStackTrace();
         }
         return null;

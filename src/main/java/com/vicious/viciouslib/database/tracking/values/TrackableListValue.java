@@ -1,5 +1,6 @@
 package com.vicious.viciouslib.database.tracking.values;
 
+import com.vicious.viciouslib.LoggerWrapper;
 import com.vicious.viciouslib.database.tracking.Trackable;
 import com.vicious.viciouslib.serialization.SerializationUtil;
 import com.vicious.viciouslib.util.VLUtil;
@@ -58,7 +59,7 @@ public class TrackableListValue<T extends List<V>,V> extends TrackableObject<T>{
                 try {
                     objs.add((V) SerializationUtil.parse(LISTTYPE,val));
                 } catch(Exception e){
-                    System.err.println("Failed to print: " + e.getMessage());
+                    LoggerWrapper.logError("Failed to print: " + e.getMessage());
                     e.printStackTrace();
                 }
                 val="";

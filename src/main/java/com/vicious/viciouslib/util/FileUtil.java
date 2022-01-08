@@ -1,5 +1,6 @@
 package com.vicious.viciouslib.util;
 
+import com.vicious.viciouslib.LoggerWrapper;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
@@ -35,7 +36,7 @@ public class FileUtil {
             try {
                 Files.createFile(p);
             } catch(IOException ex){
-                System.err.println("I'm not sure how we got here, but somehow the file you have created both exists and doesn't exist at the same time. Is this God?");
+                LoggerWrapper.logError("I'm not sure how we got here, but somehow the file you have created both exists and doesn't exist at the same time. Is this God?");
                 ex.printStackTrace();
             }
         }
@@ -47,7 +48,7 @@ public class FileUtil {
             try {
                 Files.createFile(p);
             } catch(IOException ex){
-                System.err.println("I'm not sure how we got here, but somehow the file you have created both exists and doesn't exist at the same time. Is this God?");
+                LoggerWrapper.logError("I'm not sure how we got here, but somehow the file you have created both exists and doesn't exist at the same time. Is this God?");
                 ex.printStackTrace();
             }
         }
@@ -61,7 +62,7 @@ public class FileUtil {
             return new JSONObject(jsonTxt);
 
         } catch (Exception ex){
-            System.err.println("Could not load, probably doesn't actually exist. " + p.toString() + " caused by: " + ex.getMessage());
+            LoggerWrapper.logError("Could not load, probably doesn't actually exist. " + p.toString() + " caused by: " + ex.getMessage());
             ex.printStackTrace();
             throw ex;
         }
@@ -74,7 +75,7 @@ public class FileUtil {
             return new JSONObject(jsonTxt);
 
         } catch (Exception ex){
-            System.err.println("Could not load, probably doesn't actually exist. " + p.toString() + " caused by: " + ex.getMessage());
+            LoggerWrapper.logError("Could not load, probably doesn't actually exist. " + p.toString() + " caused by: " + ex.getMessage());
             ex.printStackTrace();
             throw ex;
         }

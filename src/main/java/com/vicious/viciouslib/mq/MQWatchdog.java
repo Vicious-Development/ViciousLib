@@ -2,6 +2,7 @@ package com.vicious.viciouslib.mq;
 
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.ShutdownSignalException;
+import com.vicious.viciouslib.LoggerWrapper;
 
 import java.io.IOException;
 import java.util.concurrent.Executors;
@@ -17,13 +18,13 @@ public class MQWatchdog {
     public MQWatchdog() {
         if (watchdogTask != null) watchdogTask.cancel(false);
         this.watchdogTask = startWatch();
-        System.out.println("MQWatchdog: Started! Woof!");
+        LoggerWrapper.logInfo("MQWatchdog: Started! Woof!");
     }
 
     // Kills the current watchdog process.
     public void kill() {
         watchdogTask.cancel(false);
-        System.out.println("Watchdog Task Cancelled");
+        LoggerWrapper.logInfo("Watchdog Task Cancelled");
     }
 
     // Task to start the watchdog
@@ -32,7 +33,7 @@ public class MQWatchdog {
             // Attempts to retry connection to rabbit mq
             counter++;
             if (counter > MQWatchdog.MAX_RETRIES) {
-                System.err.println("MQWatchdog Max Retry Exceeded!");
+                LoggerWrapper.logError("MQWatchdog Max Retry Exceeded!");
                 //TODO: implement some sort of Comm handler
                 //DiscordDoor.sendMessage(LibCFG.getInstance().universalName.value(), "Unable to reconnect to MQ after 5 attempts! Creating new local MQ instance... If this message repeats, restart the server.");
                 MQCore.getInstance().reconnect();
@@ -41,7 +42,7 @@ public class MQWatchdog {
 
             // Checks connections to rabbitMQ
             if (!MQCore.getInstance().isConnected()) {
-                System.err.println("MQWatchdog: Connection FAIL; Attempting reconnect " + counter + " of 5");
+                LoggerWrapper.logError("MQWatchdog: Connection FAIL; Attempting reconnect " + counter + " of 5");
                 MQCore.getInstance().reconnect();
                 return;
             }
@@ -51,7 +52,7 @@ public class MQWatchdog {
             try {
                 tx.basicQos(1);
             } catch (ShutdownSignalException | IOException ex) {
-                System.err.println("TX Channel Closed: " + tx.getCloseReason().getReason().protocolMethodName());
+                LoggerWrapper.logError("TX Channel Closed: " + tx.getCloseReason().getReason().protocolMethodName());
                 MQCore.getInstance().channelReconnect();
                 return;
             }
@@ -61,7 +62,7 @@ public class MQWatchdog {
             try {
                 rx.basicQos(1);
             } catch (ShutdownSignalException | IOException ex) {
-                System.err.println("RX Channel Closed: " + rx.getCloseReason().getReason().protocolMethodName());
+                LoggerWrapper.logError("RX Channel Closed: " + rx.getCloseReason().getReason().protocolMethodName());
                 MQCore.getInstance().channelReconnect();
                 return;
             }

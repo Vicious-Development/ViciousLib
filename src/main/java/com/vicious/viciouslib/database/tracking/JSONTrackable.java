@@ -1,5 +1,6 @@
 package com.vicious.viciouslib.database.tracking;
 
+import com.vicious.viciouslib.LoggerWrapper;
 import com.vicious.viciouslib.database.sqlcomponents.SQLCommand;
 import com.vicious.viciouslib.database.tracking.values.TrackableValue;
 import com.vicious.viciouslib.util.FileUtil;
@@ -95,7 +96,7 @@ public class JSONTrackable<T extends JSONTrackable<T>> extends Trackable<T>{
         try {
             Files.write(PATH, jsonObj.toString(1).getBytes(), StandardOpenOption.WRITE);
         } catch(IOException e){
-            System.err.println("Failed to save a JSONTrackable " + getClass().getCanonicalName() + " caused by: " + e.getMessage());
+            LoggerWrapper.logError("Failed to save a JSONTrackable " + getClass().getCanonicalName() + " caused by: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -109,7 +110,7 @@ public class JSONTrackable<T extends JSONTrackable<T>> extends Trackable<T>{
         } catch(Exception e){
             //IOE happens if the file doesn't exist. If it doesn't no values will be updated anyways which is totally fine.
             if(!(e instanceof IOException)) {
-                System.err.println("Failed to read a jsontrackable " + getClass().getCanonicalName() + " caused by: " + e.getMessage());
+                LoggerWrapper.logError("Failed to read a jsontrackable " + getClass().getCanonicalName() + " caused by: " + e.getMessage());
                 e.printStackTrace();
             }
         }

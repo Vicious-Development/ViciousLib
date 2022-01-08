@@ -1,5 +1,6 @@
 package com.vicious.viciouslib.database.tracking;
 
+import com.vicious.viciouslib.LoggerWrapper;
 import com.vicious.viciouslib.database.Database;
 import com.vicious.viciouslib.database.tracking.values.TrackableValue;
 
@@ -25,7 +26,7 @@ public class DefaultTrackingHandler extends TrackingHandler {
                 instance.update();
             }
             catch(SQLException e) {
-                System.err.println("Failed to update trackable: " + e.getMessage());
+                LoggerWrapper.logError("Failed to update trackable: " + e.getMessage());
                 e.printStackTrace();
             }
             //TODO CONFIGURABLE

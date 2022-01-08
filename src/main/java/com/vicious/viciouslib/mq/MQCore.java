@@ -1,8 +1,9 @@
 package com.vicious.viciouslib.mq;
 
-import com.vicious.viciouslib.LibCFG;
 import com.rabbitmq.client.*;
 import com.rabbitmq.client.impl.DefaultExceptionHandler;
+import com.vicious.viciouslib.LibCFG;
+import com.vicious.viciouslib.LoggerWrapper;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -58,7 +59,7 @@ public class MQCore {
             final ExceptionHandler eh = new DefaultExceptionHandler() {
                 @Override
                 public void handleConsumerException(Channel channel, Throwable exception, Consumer consumer, String consumerTag, String methodName) {
-                    System.err.println(" - Error raised by: " + channel.getChannelNumber() + " Method " + methodName + ": " + exception.getMessage());
+                    LoggerWrapper.logError(" - Error raised by: " + channel.getChannelNumber() + " Method " + methodName + ": " + exception.getMessage());
                     exception.printStackTrace();
                 }
             };
@@ -67,28 +68,28 @@ public class MQCore {
             connection = factory.newConnection(LibCFG.getInstance().universalName.value());
             connection.addShutdownListener(cause -> {
                 String message = "MQ connection shutdown due to " + cause.getReason().protocolMethodName() + "::\n" + cause.getLocalizedMessage();
-                System.err.println(message);
+                LoggerWrapper.logError(message);
                 if (cause.getReason().protocolMethodName().equals("connection.close")) {
                     watchdog.kill();
-                    System.out.println("[FS] Detected normal MQ shutdown. Not restarting.");
+                    LoggerWrapper.logInfo("[FS] Detected normal MQ shutdown. Not restarting.");
                 } else {
-                    System.out.println("[FS] Detected improper MQ shutdown, restarting.");
+                    LoggerWrapper.logInfo("[FS] Detected improper MQ shutdown, restarting.");
                     //TODO:reimpl:
                 }
             });
             connection.addBlockedListener(new BlockedListener() {
                 @Override
                 public void handleBlocked(String s) throws IOException {
-                    System.err.println("MQ Connection Blocked: " + s);
+                    LoggerWrapper.logError("MQ Connection Blocked: " + s);
                 }
 
                 @Override
                 public void handleUnblocked() throws IOException {
-                    System.out.println("MQ Connection Unblocked");
+                    LoggerWrapper.logInfo("MQ Connection Unblocked");
                 }
             });
         } catch (Exception ex) {
-            System.err.println("Could not create new MQ connection." + ex.getMessage());
+            LoggerWrapper.logError("Could not create new MQ connection." + ex.getMessage());
             ex.printStackTrace();
         }
     }
@@ -102,7 +103,7 @@ public class MQCore {
             tx.queueDeclare(LibCFG.getInstance().universalName.value(), true, false, false, null);
             tx.basicQos(1);
         } catch (Exception ex) {
-            System.err.println("Could not set TX channels");
+            LoggerWrapper.logError("Could not set TX channels");
             ex.printStackTrace();
         }
 
@@ -112,7 +113,7 @@ public class MQCore {
             rx.queueDeclare(LibCFG.getInstance().universalName.value(), true, false, false, null);
             rx.basicQos(1);
         } catch (Exception ex) {
-            System.err.println("Could not set RX channels");
+            LoggerWrapper.logError("Could not set RX channels");
             ex.printStackTrace();
         }
     }
@@ -123,9 +124,9 @@ public class MQCore {
             setConnection();
             setChannels();
             listener = new MQListener(rx);
-            System.out.println("RabbitMQ Init Complete");
+            LoggerWrapper.logInfo("RabbitMQ Init Complete");
         } catch (Exception ex) {
-            System.err.println(ex.getMessage());
+            LoggerWrapper.logError(ex.getMessage());
             ex.printStackTrace();
         }
     }
@@ -138,7 +139,7 @@ public class MQCore {
             setChannels();
             listener = new MQListener(rx);
         } catch (Exception ex) {
-            System.err.println(ex.getMessage());
+            LoggerWrapper.logError(ex.getMessage());
             ex.printStackTrace();
         }
     }
@@ -148,13 +149,13 @@ public class MQCore {
         try {
             if (rx.isOpen()) rx.close(0, "channelReconnect() method");
         } catch (Exception ex) {
-            System.err.println("Can't close RX");
+            LoggerWrapper.logError("Can't close RX");
             ex.printStackTrace();
         }
         try {
             if (tx.isOpen()) tx.close(0, "channelReconnect() method");
         } catch (Exception ex) {
-            System.err.println("Can't close TX");
+            LoggerWrapper.logError("Can't close TX");
             ex.printStackTrace();
         }
         try {
@@ -162,7 +163,7 @@ public class MQCore {
             listener = null;
             listener = new MQListener(rx);
         } catch (Exception ex) {
-            System.err.println(ex.getMessage());
+            LoggerWrapper.logError(ex.getMessage());
             ex.printStackTrace();
         }
     }
@@ -173,7 +174,7 @@ public class MQCore {
             tx.basicPublish("", queue, null, message);
             //TODO:reimpl:plugin.getComm().debug("Sent Single MQ to " + queue);
         } catch (Exception ex) {
-            System.err.println(ex.getMessage());
+            LoggerWrapper.logError(ex.getMessage());
             ex.printStackTrace();
         }
     }
@@ -186,7 +187,7 @@ public class MQCore {
             tx.basicPublish("amq.fanout", queue, null, message);
             //TODO:reimpl:plugin.getComm().debug("Sent MQ " + queue);
         } catch (Exception ex) {
-            System.err.println(ex.getMessage());
+            LoggerWrapper.logError(ex.getMessage());
             ex.printStackTrace();
         }
     }
@@ -198,7 +199,7 @@ public class MQCore {
             tx.close();
             connection.close();
         } catch(TimeoutException | IOException e){
-            System.err.println(e.getMessage());
+            LoggerWrapper.logError(e.getMessage());
             e.printStackTrace();
         }
     }
@@ -212,7 +213,7 @@ public class MQCore {
             // Checks if the file exists
             File inFile = new File(file);
             if (!inFile.isFile()) {
-                System.err.println("Unable to find mq.yml config in server root directory!");
+                LoggerWrapper.logError("Unable to find mq.yml config in server root directory!");
                 return null;
             }
 
@@ -229,10 +230,10 @@ public class MQCore {
             }
             br.close();
         } catch (IOException ex) {
-            System.err.println("Unable to find mq.yml config in server root directory!");
+            LoggerWrapper.logError("Unable to find mq.yml config in server root directory!");
             ex.printStackTrace();
         }
-        System.out.println("MQ Config loaded, Host: " + mq[0]);
+        LoggerWrapper.logInfo("MQ Config loaded, Host: " + mq[0]);
         return mq;
     }
     public boolean isConnected(){

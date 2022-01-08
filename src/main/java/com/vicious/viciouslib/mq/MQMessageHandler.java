@@ -1,9 +1,10 @@
 package com.vicious.viciouslib.mq;
 
 
-import com.vicious.viciouslib.LibCFG;
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
+import com.vicious.viciouslib.LibCFG;
+import com.vicious.viciouslib.LoggerWrapper;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -27,11 +28,11 @@ public class MQMessageHandler {
             }
             else {
                if(LibCFG.getInstance().MQ404.getBoolean()){
-                   System.err.println("Error404: MQHandler not found for: " + application);
+                   LoggerWrapper.logError("Error404: MQHandler not found for: " + application);
                }
             }
         } catch (Exception ex) {
-            System.err.println("Could not handle MQ message." + ex.getMessage());
+            LoggerWrapper.logError("Could not handle MQ message." + ex.getMessage());
             ex.printStackTrace();
         }
     }

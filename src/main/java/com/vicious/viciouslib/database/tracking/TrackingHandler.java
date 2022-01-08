@@ -1,5 +1,6 @@
 package com.vicious.viciouslib.database.tracking;
 
+import com.vicious.viciouslib.LoggerWrapper;
 import com.vicious.viciouslib.database.Database;
 import com.vicious.viciouslib.database.tracking.interfaces.TickableTrackableValue;
 
@@ -40,7 +41,7 @@ public class TrackingHandler {
         } catch(Exception e){
             if(e instanceof SQLException) throw e;
             else {
-                System.err.println(e.getMessage());
+                LoggerWrapper.logError(e.getMessage());
                 e.printStackTrace();
             }
         }
@@ -67,7 +68,7 @@ public class TrackingHandler {
                 db.safeExecute(t.getSQLUpdateCommand(), t);
             }
         } catch(SQLException e){
-            System.err.println("Failed to apply final updates: " + e.getMessage());
+            LoggerWrapper.logError("Failed to apply final updates: " + e.getMessage());
             e.printStackTrace();
         }
     }
