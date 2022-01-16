@@ -18,7 +18,7 @@ public class MQCore {
     private MQCore(){
         LibCFG.getInstance().executeOnRead((t)->{
             if(LibCFG.getInstance().mqEnabled.getBoolean()){
-                if(handler != null) {
+                if(handler == null) {
                     start();
                     handler = new MQMessageHandler();
                 }
@@ -26,7 +26,7 @@ public class MQCore {
         });
         LibCFG.getInstance().executeOnWrite((t)->{
             if(LibCFG.getInstance().mqEnabled.getBoolean()){
-                if(handler != null) {
+                if(handler == null) {
                     start();
                     handler = new MQMessageHandler();
                 }
