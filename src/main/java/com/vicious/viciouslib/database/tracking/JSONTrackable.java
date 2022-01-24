@@ -90,7 +90,7 @@ public class JSONTrackable<T extends JSONTrackable<T>> extends Trackable<T>{
 
     public void overWriteFile() {
         for (TrackableValue<?> value : values.values()) {
-            jsonObj.put(value.name,value.value());
+            jsonObj.put(value.name,value.getJSONValue());
         }
         FileUtil.createOrWipe(PATH);
         try {

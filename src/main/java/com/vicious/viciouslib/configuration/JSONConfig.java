@@ -52,7 +52,7 @@ public class JSONConfig extends JSONTrackable<JSONConfig> {
                     writeValue(writer,((ConfigurationValue<?>) value).getStopValue(),0,0);
                 } else {
                     writer.append('"' + value.name + '"' + ": ");
-                    writeValue(writer,value.value(),0,0);
+                    writeValue(writer,value.getJSONValue(),0,0);
                 }
                 if (i < vals.length - 1) writer.append(",");
             } catch(Exception e){

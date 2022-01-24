@@ -1,23 +1,25 @@
 package com.vicious.viciouslib.database.tracking.values;
 
-import com.vicious.viciouslib.util.VLUtil;
 import com.vicious.viciouslib.database.objectTypes.LongText;
 import com.vicious.viciouslib.database.objectTypes.MediumText;
-import com.vicious.viciouslib.database.tracking.interfaces.SQLConverter;
 import com.vicious.viciouslib.database.tracking.Trackable;
-import com.vicious.viciouslib.database.tracking.interfaces.TrackableValueConverter;
 import com.vicious.viciouslib.database.tracking.TrackingHandler;
+import com.vicious.viciouslib.database.tracking.interfaces.SQLConverter;
+import com.vicious.viciouslib.database.tracking.interfaces.TrackableValueConverter;
+import com.vicious.viciouslib.util.VLUtil;
 import org.json.JSONObject;
 
 import java.sql.ResultSet;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public abstract class TrackableValue<T> {
     public static TrackingHandler globalHandler;
     protected static final Map<Class<?>, SQLConverter> sqlconverters = new HashMap<>();
+    protected static final Map<Class<?>, Function<Object,String>> universals = new HashMap<>();
 
     public final T defaultSetting;
     protected T setting;
@@ -51,6 +53,7 @@ public abstract class TrackableValue<T> {
             if((Boolean)t) return "1";
             return "0";
         });
+        universals.put(Class.class, (t)-> ((Class<?>)t).getCanonicalName());
     }
 
 
@@ -67,6 +70,7 @@ public abstract class TrackableValue<T> {
     public String SQLString(){
         if(setting == null) return null;
         if(sqlconverters.containsKey(setting.getClass())) return sqlconverters.get(setting.getClass()).convert(this.value());
+        if(universals.containsKey(setting.getClass())) return universals.get(setting.getClass()).apply(this.value());
         return setting.toString();
     }
     public void convert(){
@@ -104,5 +108,11 @@ public abstract class TrackableValue<T> {
         //Mark dirty.
         tracker.markDirty(name,SQLString());
         return this;
+    }
+
+    public Object getJSONValue(){
+        if(setting == null) return null;
+        if(universals.containsKey(setting.getClass())) return universals.get(setting.getClass()).apply(this.value());
+        return setting.toString();
     }
 }

@@ -19,8 +19,8 @@ import java.util.UUID;
 import java.util.function.Supplier;
 
 public class TrackableObject<T> extends TrackableValue<T> {
-    protected static final Map<Class<?>, TrackableValueSQLParser<?>> sqlparsers = new HashMap<>();
-    protected static final Map<Class<?>, TrackableValueJSONParser<?>> jsonparsers = new HashMap<>();
+    public static final Map<Class<?>, TrackableValueSQLParser<?>> sqlparsers = new HashMap<>();
+    public static final Map<Class<?>, TrackableValueJSONParser<?>> jsonparsers = new HashMap<>();
     //To add support for a class type, add a parser here. No Enums allowed.
     static {
         sqlparsers.put(Boolean.class,(r, t)->r.getBoolean(t.name));
@@ -36,6 +36,7 @@ public class TrackableObject<T> extends TrackableValue<T> {
         sqlparsers.put(LongText.class,(r, t)->new LongText(r.getString(t.name)));
         sqlparsers.put(Date.class,(r, t)-> VLUtil.DATEFORMAT.parse(r.getString(t.name)));
         sqlparsers.put(SQLVector3i.class,(r, t)->SQLVector3i.parseVector3i(r.getString(t.name)));
+        sqlparsers.put(Class.class,(r,t)->Class.forName(r.getString(t.name)));
     }
 
     static {
@@ -53,6 +54,7 @@ public class TrackableObject<T> extends TrackableValue<T> {
         jsonparsers.put(LongText.class,(j, t)->new LongText(j.getString(t.name)));
         jsonparsers.put(Date.class,(j, t)-> VLUtil.DATEFORMAT.parse(j.getString(t.name)));
         jsonparsers.put(SQLVector3i.class,(j, t)->SQLVector3i.parseVector3i(j.getString(t.name)));
+        jsonparsers.put(Class.class,(j,t)->Class.forName(j.getString(t.name)));
     }
     //Some objects don't get converted into SQL language properly, registering a SQLConverter ensures that the string provided is compatible.
 
@@ -105,6 +107,12 @@ public class TrackableObject<T> extends TrackableValue<T> {
         this.convert();
         return this;
     }
+
+    @Override
+    public Object getJSONValue() {
+        return value();
+    }
+
     public TrackableObject<T> converter(TrackableValueConverter converter){
         return (TrackableObject<T>) super.converter(converter);
     }

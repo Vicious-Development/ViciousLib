@@ -41,8 +41,10 @@ public class ConfigurationValue<T> extends TrackableObject<T> {
     public boolean canBeModifiedOnRuntime(){
         return canBeSetOnRuntime;
     }
-    public T getStopValue(){
-        return settingOnStop;
+    public Object getStopValue(){
+        if(settingOnStop == null) return null;
+        if(universals.containsKey(settingOnStop.getClass())) return universals.get(settingOnStop.getClass()).apply(this.value());
+        return settingOnStop.toString();
     }
 
     public ConfigurationValue<T> parent(ConfigurationValue parent) {
