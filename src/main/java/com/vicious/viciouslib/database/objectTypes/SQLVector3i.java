@@ -1,6 +1,8 @@
 package com.vicious.viciouslib.database.objectTypes;
 
-public class SQLVector3i {
+import com.vicious.viciouslib.util.Hashable;
+
+public class SQLVector3i implements Hashable {
     public int x;
     public int y;
     public int z;
@@ -32,5 +34,10 @@ public class SQLVector3i {
     }
     public String toString(){
         return x + "," + y + "," + z;
+    }
+
+    @Override
+    public int hashCode() {
+        return hash();
     }
 }
