@@ -18,6 +18,7 @@ public interface Hashable {
                     e.printStackTrace();
                 }
             }
+            cls=cls.getSuperclass();
         }
         return Objects.hash(objects);
     }
