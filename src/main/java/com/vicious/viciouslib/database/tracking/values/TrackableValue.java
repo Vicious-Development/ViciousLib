@@ -18,8 +18,8 @@ import java.util.function.Supplier;
 
 public abstract class TrackableValue<T> {
     public static TrackingHandler globalHandler;
-    protected static final Map<Class<?>, SQLConverter> sqlconverters = new HashMap<>();
-    protected static final Map<Class<?>, Function<Object,String>> universals = new HashMap<>();
+    public static final Map<Class<?>, SQLConverter> sqlconverters = new HashMap<>();
+    public static final Map<Class<?>, Function<Object,String>> universalConverters = new HashMap<>();
 
     public final T defaultSetting;
     protected T setting;
@@ -53,7 +53,7 @@ public abstract class TrackableValue<T> {
             if((Boolean)t) return "1";
             return "0";
         });
-        universals.put(Class.class, (t)-> ((Class<?>)t).getCanonicalName());
+        universalConverters.put(Class.class, (t)-> ((Class<?>)t).getCanonicalName());
     }
 
 
@@ -70,7 +70,7 @@ public abstract class TrackableValue<T> {
     public String SQLString(){
         if(setting == null) return null;
         if(sqlconverters.containsKey(setting.getClass())) return sqlconverters.get(setting.getClass()).convert(this.value());
-        if(universals.containsKey(setting.getClass())) return universals.get(setting.getClass()).apply(this.value());
+        if(universalConverters.containsKey(setting.getClass())) return universalConverters.get(setting.getClass()).apply(this.value());
         return setting.toString();
     }
     public void convert(){
@@ -112,7 +112,7 @@ public abstract class TrackableValue<T> {
 
     public Object getJSONValue(){
         if(setting == null) return null;
-        if(universals.containsKey(setting.getClass())) return universals.get(setting.getClass()).apply(this.value());
+        if(universalConverters.containsKey(setting.getClass())) return universalConverters.get(setting.getClass()).apply(this.value());
         return setting.toString();
     }
 }

@@ -43,7 +43,7 @@ public class ConfigurationValue<T> extends TrackableObject<T> {
     }
     public Object getStopValue(){
         if(settingOnStop == null) return null;
-        if(universals.containsKey(settingOnStop.getClass())) return universals.get(settingOnStop.getClass()).apply(this.value());
+        if(universalConverters.containsKey(settingOnStop.getClass())) return universalConverters.get(settingOnStop.getClass()).apply(this.value());
         return settingOnStop.toString();
     }
 
