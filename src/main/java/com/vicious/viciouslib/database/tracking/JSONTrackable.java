@@ -110,10 +110,8 @@ public class JSONTrackable<T extends JSONTrackable<T>> extends Trackable<T>{
             }
         } catch(Exception e){
             //IOE happens if the file doesn't exist. If it doesn't no values will be updated anyways which is totally fine.
-            if(!(e instanceof IOException)) {
-                LoggerWrapper.logError("Failed to read a jsontrackable " + getClass().getCanonicalName() + " caused by: " + e.getMessage());
-                e.printStackTrace();
-            }
+            LoggerWrapper.logError("Failed to read a jsontrackable " + getClass().getCanonicalName() + " caused by: " + e.getMessage());
+            e.printStackTrace();
         }
         if(readWriteTask != null){
             onInitialization();

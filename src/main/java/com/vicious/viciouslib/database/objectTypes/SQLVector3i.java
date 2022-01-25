@@ -17,12 +17,12 @@ public class SQLVector3i {
         int j = 0;
         for (int i = 0; i < in.length(); i++) {
             char c = in.charAt(i);
-            if(c != ','){
-                s+=c;
-            }
-            else if (i < in.length()-1){
+            if (i == in.length()-1){
                 s+=c;
                 vals[j]=Integer.parseInt(s);
+            }
+            else if(c != ','){
+                s+=c;
             }
             else{
                 vals[j]=Integer.parseInt(s);

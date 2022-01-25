@@ -1,5 +1,6 @@
 package com.vicious.viciouslib.database.tracking.values;
 
+import com.vicious.viciouslib.LoggerWrapper;
 import com.vicious.viciouslib.database.objectTypes.LongText;
 import com.vicious.viciouslib.database.objectTypes.MediumText;
 import com.vicious.viciouslib.database.objectTypes.SQLVector3i;
@@ -78,7 +79,9 @@ public class TrackableObject<T> extends TrackableValue<T> {
     public TrackableObject<T> setFromSQL(ResultSet rs) throws Exception{
         try {
             this.setWithoutUpdate(((TrackableValueSQLParser<T>) sqlparsers.get(type)).parse(rs, this));
-        } catch(Exception ignored){
+        } catch(Exception e){
+            LoggerWrapper.logError(e.getMessage());
+            e.printStackTrace();
         }
         this.convert();
         return this;
@@ -86,7 +89,9 @@ public class TrackableObject<T> extends TrackableValue<T> {
     public TrackableObject<T> setFromJSON(JSONObject jo) {
         try {
             this.setWithoutUpdate(((TrackableValueJSONParser<T>) jsonparsers.get(type)).parse(jo, this));
-        } catch(Exception ignored){
+        } catch(Exception e){
+            LoggerWrapper.logError(e.getMessage());
+            e.printStackTrace();
         }
         this.convert();
         return this;
@@ -94,7 +99,9 @@ public class TrackableObject<T> extends TrackableValue<T> {
     public TrackableObject<T> setFromStringWithUpdate(String s) throws Exception{
         try {
             this.set((T) SerializationUtil.parse(type,s));
-        } catch(Exception ignored){
+        } catch(Exception e){
+            LoggerWrapper.logError(e.getMessage());
+            e.printStackTrace();
         }
         this.convert();
         return this;
@@ -102,7 +109,9 @@ public class TrackableObject<T> extends TrackableValue<T> {
     public TrackableObject<T> setFromStringWithoutUpdate(String s) {
         try {
             this.setWithoutUpdate((T) SerializationUtil.parse(type,s));
-        } catch(Exception ignored){
+        } catch(Exception e){
+            LoggerWrapper.logError(e.getMessage());
+            e.printStackTrace();
         }
         this.convert();
         return this;
