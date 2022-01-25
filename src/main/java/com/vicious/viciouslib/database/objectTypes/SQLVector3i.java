@@ -1,8 +1,8 @@
 package com.vicious.viciouslib.database.objectTypes;
 
-import com.vicious.viciouslib.util.Hashable;
+import java.util.Objects;
 
-public class SQLVector3i implements Hashable {
+public class SQLVector3i {
     public int x;
     public int y;
     public int z;
@@ -35,9 +35,16 @@ public class SQLVector3i implements Hashable {
     public String toString(){
         return x + "," + y + "," + z;
     }
-
     @Override
     public int hashCode() {
-        return hash();
+        return Objects.hash(x, y, z);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        SQLVector3i that = (SQLVector3i) o;
+        return x == that.x && y == that.y && z == that.z;
     }
 }

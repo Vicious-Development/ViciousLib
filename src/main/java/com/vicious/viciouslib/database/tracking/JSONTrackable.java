@@ -70,12 +70,14 @@ public class JSONTrackable<T extends JSONTrackable<T>> extends Trackable<T>{
         initialized=true;
     }
     public void save(){
-        if(readWriteTask != null) onInitialization();
         overWriteFile();
+        if(readWriteTask != null) {
+            onInitialization();
+            readWriteTask = null;
+        }
         for (Consumer<JSONTrackable<T>> writeListener : writeListeners) {
             writeListener.accept(this);
         }
-        if(readWriteTask != null) readWriteTask = null;
     }
     @Override
     public void markDirty(String variablename, Object var) {
@@ -101,7 +103,6 @@ public class JSONTrackable<T extends JSONTrackable<T>> extends Trackable<T>{
         }
     }
     public JSONTrackable<T> readFromJSON(){
-        if(readWriteTask != null) onInitialization();
         try {
             JSONObject obj = FileUtil.loadJSON(PATH);
             for (TrackableValue<?> value : values.values()) {
@@ -114,10 +115,13 @@ public class JSONTrackable<T extends JSONTrackable<T>> extends Trackable<T>{
                 e.printStackTrace();
             }
         }
+        if(readWriteTask != null){
+            onInitialization();
+            readWriteTask = null;
+        }
         for (Consumer<JSONTrackable<T>> readListener : readListeners) {
             readListener.accept(this);
         }
-        if(readWriteTask != null) readWriteTask = null;
         return this;
     }
 }
