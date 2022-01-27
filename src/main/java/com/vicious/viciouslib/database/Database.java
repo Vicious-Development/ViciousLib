@@ -170,7 +170,7 @@ public class Database {
                 }
             }
         }
-        if(lastColumn == null) throw new SQLException("ER0 - Failed to fix columns, this is a Frozen Lib issue, report to higher devs.");
+        if(lastColumn == null) throw new SQLException("ER0 - Failed to fix columns, this is a Vicious Lib issue, report to the git.");
         addColumnsToTable(new SQLVariable(tableName), new SQLVariable(lastColumn), toAdd);
         return true;
     }

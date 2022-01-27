@@ -5,6 +5,7 @@ import com.vicious.viciouslib.database.sqlcomponents.SQLCommand;
 import com.vicious.viciouslib.database.tracking.values.TrackableValue;
 import com.vicious.viciouslib.util.FileUtil;
 import com.vicious.viciouslib.util.VLUtil;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -109,9 +110,12 @@ public class JSONTrackable<T extends JSONTrackable<T>> extends Trackable<T>{
                 value.setFromJSON(obj);
             }
         } catch(Exception e){
-            //IOE happens if the file doesn't exist. If it doesn't no values will be updated anyways which is totally fine.
-            LoggerWrapper.logError("Failed to read a jsontrackable " + getClass().getCanonicalName() + " caused by: " + e.getMessage());
-            e.printStackTrace();
+            if(e instanceof JSONException){}
+            else {
+                //IOE happens if the file doesn't exist. If it doesn't no values will be updated anyways which is totally fine.
+                LoggerWrapper.logError("Failed to read a jsontrackable " + getClass().getCanonicalName() + " caused by: " + e.getMessage());
+                e.printStackTrace();
+            }
         }
         if(readWriteTask != null){
             onInitialization();

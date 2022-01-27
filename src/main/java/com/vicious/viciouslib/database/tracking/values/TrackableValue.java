@@ -112,7 +112,7 @@ public abstract class TrackableValue<T> {
 
     public Object getJSONValue(){
         if(setting == null) return null;
-        if(universalConverters.containsKey(setting.getClass())) return universalConverters.get(setting.getClass()).apply(this.value());
+        if(universalConverters.containsKey(type)) return universalConverters.get(type).apply(this.value());
         return setting.toString();
     }
 }

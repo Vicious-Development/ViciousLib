@@ -117,11 +117,6 @@ public class TrackableObject<T> extends TrackableValue<T> {
         return this;
     }
 
-    @Override
-    public Object getJSONValue() {
-        return value();
-    }
-
     public TrackableObject<T> converter(TrackableValueConverter converter){
         return (TrackableObject<T>) super.converter(converter);
     }
