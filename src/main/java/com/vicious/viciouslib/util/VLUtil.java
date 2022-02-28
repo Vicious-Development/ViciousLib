@@ -72,6 +72,7 @@ public class VLUtil {
 
     public static <T extends JSONTrackable<T>> boolean mightBeInitialized(Class<?> targetFieldClass, Object target) {
         for (Field declaredField : target.getClass().getDeclaredFields()) {
+            declaredField.setAccessible(true);
             if(isSubclassOfOrEqualTo(targetFieldClass,declaredField.getType())){
                 try {
                     if (declaredField.get(target) == null) return false;
@@ -81,10 +82,9 @@ public class VLUtil {
         return true;
     }
     public static boolean isSubclassOfOrEqualTo(Class<?> expected, Class<?> actual){
-        if(actual.equals(expected)) return true;
-        while(actual.getSuperclass() != null){
-            actual = actual.getSuperclass();
+        while(actual != null){
             if(actual.equals(expected)) return true;
+            actual = actual.getSuperclass();
         }
         return false;
     }
