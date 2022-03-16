@@ -1,11 +1,13 @@
 package com.vicious.viciouslib.util.reflect.deep;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.util.Arrays;
 
 public class MethodSearchContext extends SearchContext<Method>{
     public Class<?> returnType;
     public Class<?>[] params;
+    public Class<?>[] exceptions;
     public MethodSearchContext() {
     }
 
@@ -15,18 +17,24 @@ public class MethodSearchContext extends SearchContext<Method>{
      */
     @Override
     public boolean matches(Method in) {
-        if(name != null){
-            return in.getName().equals(name);
-        }
-        else{
-            if(returnType != null && returnType != in.getReturnType()) return false;
+        //Did this to shut intellij up, same as &&.
+        if(name != null) if(in.getName().equals(name)) return false;
+        if(returnType != null && returnType != in.getReturnType()) return false;
+        if(params != null) {
             Class<?>[] inParams = in.getParameterTypes();
-            if(inParams.length != params.length) return false;
+            if (inParams.length != params.length) return false;
             for (int i = 0; i < params.length; i++) {
-                if(params[i] != inParams[i]) return false;
+                if (params[i] != inParams[i]) return false;
             }
-            return true;
         }
+        if(exceptions != null){
+            Class<?>[] inExceptions = in.getExceptionTypes();
+            if(exceptions.length != inExceptions.length) return false;
+            for (int i = 0; i < exceptions.length; i++) {
+                if (exceptions[i] != inExceptions[i]) return false;
+            }
+        }
+        return true;
     }
 
     @Override
@@ -37,6 +45,10 @@ public class MethodSearchContext extends SearchContext<Method>{
     @Override
     public MethodSearchContext before(SearchContext<Method> ctx) {
         super.before(ctx);
+        return this;
+    }
+    public MethodSearchContext exceptions(Class<?>... exceptions){
+        this.exceptions=exceptions;
         return this;
     }
 
