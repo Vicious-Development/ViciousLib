@@ -1,13 +1,17 @@
 package com.vicious.viciouslib.util.reflect.deep;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.Arrays;
+import java.util.List;
+import java.util.function.Predicate;
 
 public class MethodSearchContext extends SearchContext<Method>{
     public Class<?> returnType;
     public Class<?>[] params;
     public Class<?>[] exceptions;
+
     public MethodSearchContext() {
     }
 
@@ -34,6 +38,12 @@ public class MethodSearchContext extends SearchContext<Method>{
                 if (exceptions[i] != inExceptions[i]) return false;
             }
         }
+        if(modifierPredicators != null){
+            int inMod = in.getModifiers();
+            for (Predicate<Integer> modifierPredicator : modifierPredicators) {
+                if(!modifierPredicator.test(inMod)) return false;
+            }
+        }
         return true;
     }
 
@@ -51,6 +61,15 @@ public class MethodSearchContext extends SearchContext<Method>{
         this.exceptions=exceptions;
         return this;
     }
+    /**
+     * Takes a list of modifier predicators to decide if the method matches the modifiers.
+     * @see java.lang.reflect.Modifier for information on what to use.
+     */
+    public MethodSearchContext withAccess(List<Predicate<Integer>> modifierPredicators){
+        this.modifierPredicators=modifierPredicators;
+        return this;
+    }
+
 
     @Override
     public MethodSearchContext name(String name) {

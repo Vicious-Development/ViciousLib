@@ -2,11 +2,14 @@ package com.vicious.viciouslib.util.reflect.deep;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 public abstract class SearchContext<T> {
     public SearchContext<T> after;
     public SearchContext<T> before;
     public String name;
+    public List<Predicate<Integer>> modifierPredicators;
+
     public SearchContext(){
     }
     public SearchContext<T> after(SearchContext<T> ctx){
@@ -19,6 +22,14 @@ public abstract class SearchContext<T> {
     }
     public SearchContext<T> name(String name){
         this.name=name;
+        return this;
+    }
+    /**
+     * Takes a list of modifier predicators to decide if the method matches the modifiers.
+     * @see java.lang.reflect.Modifier for information on what to use.
+     */
+    public SearchContext<T> withAccess(List<Predicate<Integer>> modifierPredicators){
+        this.modifierPredicators=modifierPredicators;
         return this;
     }
     public abstract boolean matches(T in);
