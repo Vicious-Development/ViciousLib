@@ -22,7 +22,7 @@ public class MethodSearchContext extends SearchContext<Method>{
     @Override
     public boolean matches(Method in) {
         //Did this to shut intellij up, same as &&.
-        if(name != null) if(in.getName().equals(name)) return false;
+        if(name != null) if(!in.getName().equals(name)) return false;
         if(returnType != null && returnType != in.getReturnType()) return false;
         if(params != null) {
             Class<?>[] inParams = in.getParameterTypes();
