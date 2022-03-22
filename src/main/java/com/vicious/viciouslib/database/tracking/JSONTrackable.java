@@ -104,10 +104,15 @@ public class JSONTrackable<T extends JSONTrackable<T>> extends Trackable<T>{
         }
     }
     public JSONTrackable<T> readFromJSON(){
+        boolean ow = false;
         try {
             JSONObject obj = FileUtil.loadJSON(PATH);
             for (TrackableValue<?> value : values.values()) {
-                value.setFromJSON(obj);
+                try {
+                    value.setFromJSON(obj);
+                } catch (JSONException e){
+                    ow = true;
+                }
             }
         } catch(Exception e){
             if(e instanceof JSONException){}
@@ -124,6 +129,7 @@ public class JSONTrackable<T extends JSONTrackable<T>> extends Trackable<T>{
         for (Consumer<JSONTrackable<T>> readListener : readListeners) {
             readListener.accept(this);
         }
+        if(ow) save();
         return this;
     }
 }

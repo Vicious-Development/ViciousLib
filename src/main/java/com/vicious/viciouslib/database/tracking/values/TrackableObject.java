@@ -10,6 +10,7 @@ import com.vicious.viciouslib.database.tracking.interfaces.TrackableValueJSONPar
 import com.vicious.viciouslib.database.tracking.interfaces.TrackableValueSQLParser;
 import com.vicious.viciouslib.serialization.SerializationUtil;
 import com.vicious.viciouslib.util.VLUtil;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.sql.ResultSet;
@@ -79,19 +80,26 @@ public class TrackableObject<T> extends TrackableValue<T> {
     public TrackableObject<T> setFromSQL(ResultSet rs) throws Exception{
         try {
             this.setWithoutUpdate(((TrackableValueSQLParser<T>) sqlparsers.get(type)).parse(rs, this));
-        } catch(Exception e){
+        }
+        catch(Exception e){
             LoggerWrapper.logError(e.getMessage());
             e.printStackTrace();
         }
         this.convert();
         return this;
     }
-    public TrackableObject<T> setFromJSON(JSONObject jo) {
+    public TrackableObject<T> setFromJSON(JSONObject jo) throws JSONException{
         try {
             this.setWithoutUpdate(((TrackableValueJSONParser<T>) jsonparsers.get(type)).parse(jo, this));
-        } catch(Exception e){
-            LoggerWrapper.logError(e.getMessage());
-            e.printStackTrace();
+        }
+        catch(Exception e){
+            if(e instanceof JSONException){
+                throw (JSONException) e;
+            }
+            else{
+                LoggerWrapper.logError(e.getMessage());
+                e.printStackTrace();
+            }
         }
         this.convert();
         return this;
