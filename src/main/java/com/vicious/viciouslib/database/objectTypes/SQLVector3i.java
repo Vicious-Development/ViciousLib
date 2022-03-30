@@ -38,8 +38,14 @@ public class SQLVector3i {
     public SQLVector3i add(int x, int y, int z){
         return new SQLVector3i(this.x+x,this.y+y,this.z+z);
     }
+    public SQLVector3i add(SQLVector3i vec){
+        return add(vec.x, vec.y, vec.z);
+    }
     public SQLVector3i subtract(int x, int y, int z){
         return new SQLVector3i(this.x-x,this.y-y,this.z-z);
+    }
+    public SQLVector3i subtract(SQLVector3i vec){
+        return subtract(vec.x, vec.y, vec.z);
     }
     @Override
     public int hashCode() {
