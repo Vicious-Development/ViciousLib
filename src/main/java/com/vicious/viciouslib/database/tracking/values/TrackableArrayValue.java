@@ -2,6 +2,7 @@ package com.vicious.viciouslib.database.tracking.values;
 
 import com.vicious.viciouslib.database.tracking.Trackable;
 import com.vicious.viciouslib.serialization.SerializableArray;
+import com.vicious.viciouslib.serialization.SerializationUtil;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -18,7 +19,7 @@ public class TrackableArrayValue<T> extends TrackableObject<SerializableArray<T>
     @Override
     public TrackableArrayValue<T> setFromJSON(JSONObject jo) {
         try {
-            SerializableArray<T> val = (SerializableArray<T>) jsonparsers.get(type).parse(jo, this);
+            SerializableArray<T> val = (SerializableArray<T>) SerializationUtil.parse(type,jo.get(name));
             this.setWithoutUpdate(val);
         } catch (Exception ignored) {
         }

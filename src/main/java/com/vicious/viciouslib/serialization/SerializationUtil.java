@@ -1,6 +1,9 @@
 package com.vicious.viciouslib.serialization;
 
 
+import com.vicious.viciouslib.database.objectTypes.LongText;
+import com.vicious.viciouslib.database.objectTypes.MediumText;
+import com.vicious.viciouslib.database.objectTypes.SQLVector3i;
 import com.vicious.viciouslib.database.tracking.interfaces.TrackableValueStringParser;
 import com.vicious.viciouslib.util.VLUtil;
 
@@ -25,9 +28,16 @@ public class SerializationUtil {
         stringparsers.put(Byte.class, Byte::parseByte);
         stringparsers.put(Short.class, Short::parseShort);
         stringparsers.put(Long.class, Long::parseLong);
+        stringparsers.put(Character.class,(s)->s.charAt(0));
         stringparsers.put(String.class,(j)-> j);
         stringparsers.put(UUID.class, UUID::fromString);
+        stringparsers.put(MediumText.class,MediumText::new);
+        stringparsers.put(LongText.class,LongText::new);
+        stringparsers.put(SQLVector3i.class,SQLVector3i::parseVector3i);
         stringparsers.put(Date.class, VLUtil.DATEFORMAT::parse);
+        stringparsers.put(Class.class, Class::forName);
+
+        serializers.put(Class.class,(o)->((Class<?>)o).getName());
     }
     static {
         specialserializers.put(SerializableArray.class,(o,exdat)-> ((SerializableArray<?>)o).serialize(exdat));
@@ -40,7 +50,9 @@ public class SerializationUtil {
         out = executeOnTargetClass((cls) -> specialserializers.get(cls).apply(value, extraData), specialserializers::containsKey, value.getClass());
         return out != null ? out : value;
     }
-    public static Object parse(Class<?> type, String s, Object... exdat) throws Exception{
+    public static Object parse(Class<?> type, Object o, Object... exdat) throws Exception{
+        if(!(o instanceof String)) return o;
+        String s = (String) o;
         if(stringparsers.containsKey(type)){
             return stringparsers.get(type).parse(s);
         }
