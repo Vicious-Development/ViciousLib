@@ -49,9 +49,6 @@ public abstract class Trackable<T extends Trackable<T>> {
         }
         return null;
     }
-    public void insertJSONObject(){
-
-    }
     public Class<?>[] getColumnTypes(){
         Class<?>[] classes = new Class<?>[values.size()];
         TrackableValue<?>[] vals = values.values().toArray(new TrackableValue[0]);
