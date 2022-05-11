@@ -43,13 +43,25 @@ public class TrackableObject<T> extends TrackableValue<T> {
                 LoggerWrapper.logError(e.getMessage());
                 e.printStackTrace();
             }
-            this.convert();
         }
+        this.convert();
         return this;
     }
     public TrackableObject<T> setFromJSON(JSONObject jo) throws JSONException{
         try {
-            this.setWithoutUpdate((T) SerializationUtil.parse(type,jo.get(this.name)));
+            Object o = jo.get(this.name);
+            //Prevent really weird class cast exceptions outside of the trackable.
+            if(o instanceof Number){
+                //I hate this but its necessary. Java why.
+                Number n = (Number) o;
+                if(type == Long.class) this.setWithoutUpdate((T)((Long)n.longValue()));
+                if(type == Byte.class) this.setWithoutUpdate((T)((Byte)n.byteValue()));
+                if(type == Short.class) this.setWithoutUpdate((T)((Short)n.shortValue()));
+                if(type == Integer.class) this.setWithoutUpdate((T)((Integer)n.intValue()));
+                if(type == Double.class) this.setWithoutUpdate((T)((Double)n.doubleValue()));
+                if(type == Float.class) this.setWithoutUpdate((T)((Float)n.floatValue()));
+            }
+            else this.setWithoutUpdate((T) SerializationUtil.parse(type,o));
         }
         catch(Exception e){
             if(e instanceof JSONException){

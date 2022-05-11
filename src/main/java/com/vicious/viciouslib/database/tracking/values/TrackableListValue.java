@@ -1,6 +1,7 @@
 package com.vicious.viciouslib.database.tracking.values;
 
 import com.vicious.viciouslib.LoggerWrapper;
+import com.vicious.viciouslib.database.objectTypes.MediumText;
 import com.vicious.viciouslib.database.tracking.Trackable;
 import com.vicious.viciouslib.serialization.SerializationUtil;
 import com.vicious.viciouslib.util.VLUtil;
@@ -31,8 +32,6 @@ public class TrackableListValue<T extends List<V>,V> extends TrackableObject<T>{
     }
     public TrackableObject<T> setFromSQL(ResultSet rs) throws Exception{
         try {
-            Class<? super T> typetouse = type.getSuperclass();
-            if(typetouse == null) typetouse = type;
             this.setWithoutUpdate((T) parseList(rs.getString(name)));
         } catch(Exception ignored){
         }
@@ -41,8 +40,6 @@ public class TrackableListValue<T extends List<V>,V> extends TrackableObject<T>{
     }
     public TrackableObject<T> setFromJSON(JSONObject jo) {
         try {
-            Class<? super T> typetouse = type.getSuperclass();
-            if(typetouse == null) typetouse = type;
             this.setWithoutUpdate((T) parseList(jo.getString(name)));
         } catch(Exception ignored){
         }
@@ -56,10 +53,11 @@ public class TrackableListValue<T extends List<V>,V> extends TrackableObject<T>{
         for (int i = 0; i < in.length(); i++) {
             char c = in.charAt(i);
             if(c == ',' || c == ']'){
+                if(val.isEmpty()) continue;
                 try {
                     objs.add((V) SerializationUtil.parse(LISTTYPE,val));
                 } catch(Exception e){
-                    LoggerWrapper.logError("Failed to print: " + e.getMessage());
+                    LoggerWrapper.logError("Failed to parse: " + e.getMessage());
                     e.printStackTrace();
                 }
                 val="";
@@ -88,19 +86,16 @@ public class TrackableListValue<T extends List<V>,V> extends TrackableObject<T>{
     public TrackableListValue<T,V> add(V val){
         setting.add(val);
         tracker.markDirty(name,setting);
-
         return this;
     }
     public TrackableListValue<T,V> add(int pos, V val){
         setting.add(pos,val);
         tracker.markDirty(name,setting);
-
         return this;
     }
     public TrackableListValue<T,V> set(int pos, V val){
         setting.set(pos,val);
         tracker.markDirty(name,setting);
-
         return this;
     }
     public int size(){
@@ -118,5 +113,10 @@ public class TrackableListValue<T extends List<V>,V> extends TrackableObject<T>{
         setting.addAll(vals);
         tracker.markDirty(name,setting);
         return this;
+    }
+
+    @Override
+    public Class<?> getSQLClassType() {
+        return MediumText.class;
     }
 }

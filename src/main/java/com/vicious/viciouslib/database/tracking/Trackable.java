@@ -16,7 +16,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public abstract class Trackable<T extends Trackable<T>> {
-    protected static TrackingHandler handler;
+    public static TrackingHandler handler;
     public Trackable(TrackableValue<?>... extraValues){
         for (TrackableValue<?> extraValue : extraValues) {
             values.put(extraValue.name,extraValue);
@@ -56,7 +56,7 @@ public abstract class Trackable<T extends Trackable<T>> {
         Class<?>[] classes = new Class<?>[values.size()];
         TrackableValue<?>[] vals = values.values().toArray(new TrackableValue[0]);
         for (int i = 0; i < values.size(); i++) {
-            classes[i]=vals[i].type;
+            classes[i]=vals[i].getSQLClassType();
         }
         return classes;
     }

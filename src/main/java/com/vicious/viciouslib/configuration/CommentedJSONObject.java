@@ -1,78 +1,107 @@
 package com.vicious.viciouslib.configuration;
 
 import com.vicious.viciouslib.LoggerWrapper;
-import com.vicious.viciouslib.database.tracking.JSONTrackable;
-import com.vicious.viciouslib.database.tracking.values.TrackableValue;
 import com.vicious.viciouslib.serialization.SerializationUtil;
-import com.vicious.viciouslib.util.FileUtil;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONString;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.io.Writer;
 import java.math.BigDecimal;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Scanner;
 
-public class JSONConfig extends JSONTrackable<JSONConfig> {
-
-    public JSONConfig(String f) {
-        super(f);
-    }
-    public JSONConfig(Path p) {
-        super(p);
-    }
-    public JSONConfig(String f, TrackableValue<?>... extraValues) {
-        super(f,extraValues);
-    }
-    public JSONConfig(Path p, TrackableValue<?>... extraValues) {
-        super(p,extraValues);
-    }
-
-    public void overWriteFile() {
-        StringWriter writer = new StringWriter();
-        writer.write("{");
-        TrackableValue<?>[] vals = values.values().toArray(new TrackableValue<?>[0]);
-        for (int i = 0; i < vals.length; i++) {
+public class CommentedJSONObject {
+    public static class IsCommentException extends Exception{};
+    private Map<String,Object> map = new HashMap<>();
+    private int lineIndex = 0;
+    private String line;
+    private Scanner scan;
+    public CommentedJSONObject(Scanner scan){
+        this.scan=scan;
+        while(scan.hasNextLine()){
+            line=scan.nextLine();
+            lineIndex=0;
             try {
-                TrackableValue<?> value = vals[i];
-                writer.append("\n");
-                if(value.value() == null) {
-                    writer.append(((ConfigurationValue<?>) value).getTab() + '"' + value.name + '"' + ": ");
-                    writeValue(writer,null,0,0);
-                }
-                if (value instanceof ConfigurationValue<?>) {
-                    writer.append(((ConfigurationValue<?>) value).getTab() + '"' + value.name + '"' + ": ");
-                    writeValue(writer,((ConfigurationValue<?>) value).getStopValue(),0,0);
-                } else {
-                    writer.append('"' + value.name + '"' + ": ");
-                    writeValue(writer,value.getJSONValue(),0,0);
-                }
-                if (i < vals.length - 1) writer.append(",");
-            } catch(Exception e){
-                LoggerWrapper.logError(e.getMessage());
-                e.printStackTrace();
+                readLine();
+            } catch (IsCommentException ignored) {}
+        }
+        scan.close();
+    }
+    public static CommentedJSONObject fromFile(File f) throws FileNotFoundException {
+        CommentedJSONObject obj = new CommentedJSONObject(new Scanner(f));
+        return new CommentedJSONObject(new Scanner(f));
+    }
+    public String readName() throws IsCommentException{
+        StringBuilder val = new StringBuilder();
+        int count = 0;
+        for (int i = lineIndex; i < line.length(); i++) {
+            char c = line.charAt(i);
+            if(count == 0 && c == '#') throw new IsCommentException();
+            else if(c == '"'){
+                count++;
+            }
+            else if(count == 1){
+                val.append(c);
+            }
+            else{
+                //Skip blank space after ':'
+                lineIndex++;
+                return val.toString();
             }
         }
-        writer.append("\n}");
-        FileUtil.createOrWipe(PATH);
+        return val.toString();
+    }
+    public String readValue(){
+        StringBuilder val = new StringBuilder();
+        for (int i = lineIndex; i < line.length(); i++) {
+            char c = line.charAt(i);
+            val.append(c);
+
+        }
+        return val.toString();
+    }
+    public void readLine() throws IsCommentException{
+        String objectName = readName();
+        String objectStringValue = readValue();
+        Class<?> type = getExpectedType(objectStringValue);
         try {
-            Files.write(PATH, writer.toString().getBytes(), StandardOpenOption.WRITE);
-        } catch(IOException e){
-            LoggerWrapper.logError("Failed to save a Config " + getClass().getCanonicalName() + " caused by: " + e.getMessage());
+            Object value = SerializationUtil.parse(type,objectStringValue);
+            map.put(objectName,value);
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
+    public Class<?> getExpectedType(String str){
+        char first = str.charAt(0);
+        if(first == '"') return String.class;
+        else if(first == '\'') return Character.class;
+        else if(Character.isDigit(first) || first == '-') {
+            BigDecimal bd = new BigDecimal(str);
+            if(first == '-' && BigDecimal.ZERO.compareTo(bd)==0) {
+                return Double.class;
+            }
+            return BigDecimal.class;
+        }
+        return String.class;
+    }
+    public static Writer comment(Writer writer, String comment) {
+        try {
+            writer.write("\n");
+            writer.write(comment);
+        } catch (IOException e) {
+            LoggerWrapper.logError("Failed to write a comment: " + comment);
+            e.printStackTrace();
+        }
+        return writer;
+    }
 
-
-    // ALL OF THE FOLLOWING
-    // Copied from JSONObject
     public static Writer writeValue(Writer writer, Object value, int indentFactor, int indent) throws JSONException, IOException {
         if (value == null || value.equals(null)) {
             writer.write("null");
@@ -83,7 +112,7 @@ public class JSONConfig extends JSONTrackable<JSONConfig> {
             } catch (Exception e) {
                 throw new JSONException(e);
             }
-            writer.write(o != null ? o.toString() : quote(value.toString()));
+            writer.write(o != null ? o.toString() : convertToFileForm(value.toString()));
         } else if (value instanceof Number) {
             // not all Numbers may match actual JSON Numbers. i.e. fractions or Imaginary
             final String numberAsString = numberToString((Number) value);
@@ -96,13 +125,13 @@ public class JSONConfig extends JSONTrackable<JSONConfig> {
             } catch (NumberFormatException ex){
                 // The Number value is not a valid JSON number.
                 // Instead we will quote it as a string
-                quote(numberAsString, writer);
+                convertToFileForm(numberAsString, writer);
             }
         } else if (value instanceof Boolean) {
             writer.write(value.toString());
         }
         else if (value instanceof Enum<?>) {
-            writer.write(quote(((Enum<?>)value).name()));
+            writer.write(convertToFileForm(((Enum<?>)value).name()));
         } else if (value instanceof JSONObject) {
             ((JSONObject) value).write(writer, indentFactor, indent);
         } else if (value instanceof JSONArray) {
@@ -117,60 +146,11 @@ public class JSONConfig extends JSONTrackable<JSONConfig> {
             new JSONArray(value).write(writer, indentFactor, indent);
         }
         else {
-            quote(SerializationUtil.serialize(value).toString(), writer);
+            convertToFileForm(SerializationUtil.serialize(value).toString(), writer);
         }
         return writer;
     }
-    public static Writer writeValue(Writer writer, Object value,
-                                    int indentFactor, int indent, Object... extraData) throws JSONException, IOException {
-        if (value == null || value.equals(null)) {
-            writer.write("null");
-        } else if (value instanceof JSONString) {
-            Object o;
-            try {
-                o = ((JSONString) value).toJSONString();
-            } catch (Exception e) {
-                throw new JSONException(e);
-            }
-            writer.write(o != null ? o.toString() : quote(value.toString()));
-        } else if (value instanceof Number) {
-            // not all Numbers may match actual JSON Numbers. i.e. fractions or Imaginary
-            final String numberAsString = numberToString((Number) value);
-            try {
-                // Use the BigDecimal constructor for it's parser to validate the format.
-                @SuppressWarnings("unused")
-                BigDecimal testNum = new BigDecimal(numberAsString);
-                // Close enough to a JSON number that we will use it unquoted
-                writer.write(numberAsString);
-            } catch (NumberFormatException ex){
-                // The Number value is not a valid JSON number.
-                // Instead we will quote it as a string
-                quote(numberAsString, writer);
-            }
-        } else if (value instanceof Boolean) {
-            writer.write(value.toString());
-        }
-        else if (value instanceof Enum<?>) {
-            writer.write(quote(((Enum<?>)value).name()));
-        } else if (value instanceof JSONObject) {
-            ((JSONObject) value).write(writer, indentFactor, indent);
-        } else if (value instanceof JSONArray) {
-            ((JSONArray) value).write(writer, indentFactor, indent);
-        } else if (value instanceof Map) {
-            Map<?, ?> map = (Map<?, ?>) value;
-            new JSONObject(map).write(writer, indentFactor, indent);
-        } else if (value instanceof Collection) {
-            Collection<?> coll = (Collection<?>) value;
-            new JSONArray(coll).write(writer, indentFactor, indent);
-        } else if (value.getClass().isArray()) {
-            new JSONArray(value).write(writer, indentFactor, indent);
-        }
-        else {
-            quote(SerializationUtil.serialize(value, extraData).toString(), writer);
-        }
-        return writer;
-    }
-    public static String quote(String str){
+    public static String convertToFileForm(String str){
         return '"' + str + '"';
     }
     public static String numberToString(Number number) throws JSONException {
@@ -208,12 +188,12 @@ public class JSONConfig extends JSONTrackable<JSONConfig> {
             }
         }
     }
-    public static Writer quote(String string, Writer w) throws IOException {
+    //JSON Code, not mine.
+    public static Writer convertToFileForm(String string, Writer w) throws IOException {
         if (string == null || string.length() == 0) {
             w.write("\"\"");
             return w;
         }
-
         char b;
         char c = 0;
         String hhhh;

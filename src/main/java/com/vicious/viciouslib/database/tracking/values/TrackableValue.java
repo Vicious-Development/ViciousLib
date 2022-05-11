@@ -115,4 +115,7 @@ public abstract class TrackableValue<T> {
         if(universalConverters.containsKey(type)) return universalConverters.get(type).apply(this.value());
         return setting.toString();
     }
+    public Class<?> getSQLClassType(){
+        return type;
+    }
 }
