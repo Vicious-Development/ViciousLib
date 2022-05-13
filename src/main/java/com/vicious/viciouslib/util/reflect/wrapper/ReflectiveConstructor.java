@@ -13,10 +13,11 @@ public class ReflectiveConstructor extends ReflectiveObject<Constructor<?>>{
     public ReflectiveConstructor(Constructor<?> constructor){
         this.params=constructor.getParameterTypes();
     }
-    public Object construct(Object... params){
+    public Object construct(Class<?> constructorClass,Object... params){
+        Constructor<?> cnsrt = getReflectiveTarget(constructorClass);
         try {
-            if(!o.isAccessible()) o.setAccessible(true);
-            return o.newInstance(params);
+            if(!cnsrt.isAccessible()) cnsrt.setAccessible(true);
+            return cnsrt.newInstance(params);
         } catch (Exception e){
             LoggerWrapper.logError(e.getMessage());
             e.printStackTrace();
