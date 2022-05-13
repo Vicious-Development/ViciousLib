@@ -74,7 +74,11 @@ public class Reflection {
             if (m.getReturnType() == void.class) {
                 m.invoke(accessed, args);
             } else return m.invoke(accessed, args);
-        } catch(IllegalAccessException | InvocationTargetException ignored){}
+        } catch(IllegalAccessException ignored){
+        } catch (InvocationTargetException e) {
+            System.out.println("Failed to Reflectively invoke!");
+            e.getCause().printStackTrace();
+        }
         return null;
     }
     //Disabled for the time being due to java not supporting this, even via reflection.
