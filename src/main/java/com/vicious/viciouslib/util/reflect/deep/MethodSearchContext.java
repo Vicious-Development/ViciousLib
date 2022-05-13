@@ -1,8 +1,7 @@
 package com.vicious.viciouslib.util.reflect.deep;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
@@ -44,6 +43,11 @@ public class MethodSearchContext extends SearchContext<Method>{
                 if(!modifierPredicator.test(inMod)) return false;
             }
         }
+        if(annotations != null){
+            for (Class<? extends Annotation> annotation : annotations) {
+                if(!in.isAnnotationPresent(annotation)) return false;
+            }
+        }
         return true;
     }
 
@@ -83,6 +87,12 @@ public class MethodSearchContext extends SearchContext<Method>{
     }
     public MethodSearchContext accepts(Class<?>... params){
         this.params=params;
+        return this;
+    }
+
+    @Override
+    public MethodSearchContext annotated(List<Class<? extends Annotation>> annotations) {
+        super.annotated(annotations);
         return this;
     }
 

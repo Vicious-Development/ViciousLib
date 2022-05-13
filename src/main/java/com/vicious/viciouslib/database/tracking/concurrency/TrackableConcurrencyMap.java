@@ -16,9 +16,9 @@ import java.util.function.Supplier;
  */
 public class TrackableConcurrencyMap<K,V extends Trackable<V>> extends HashMap<K, ConcurrentDataEntry<V>> {
     private Supplier<V> constructor;
-    private Function<K,V> entryConstructor;
+    private Function<Object,V> entryConstructor;
     private Function<K,SQLCommand> updateCommand;
-    public TrackableConcurrencyMap(Supplier<V> constructor, Function<K,SQLCommand> updateCommand, Function<K,V> entryConstructor){
+    public TrackableConcurrencyMap(Supplier<V> constructor, Function<K,SQLCommand> updateCommand, Function<Object,V> entryConstructor){
         this.constructor=constructor;
         this.updateCommand=updateCommand;
         this.entryConstructor=entryConstructor;
@@ -28,7 +28,7 @@ public class TrackableConcurrencyMap<K,V extends Trackable<V>> extends HashMap<K
         if(entry == null){
             entry = new ConcurrentDataEntry<>(Trackable.objectFromSQL(updateCommand.apply((K) k),constructor));
             if(entry.value == null) {
-                entry.value=entryConstructor.apply((K)k);
+                entry.value=entryConstructor.apply(k);
                 try {
                     Trackable.handler.getDB().safeExecute(entry.value.getSQLNewCommand(), entry.value);
                 } catch (SQLException e) {

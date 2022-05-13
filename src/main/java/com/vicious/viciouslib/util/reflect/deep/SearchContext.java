@@ -1,5 +1,6 @@
 package com.vicious.viciouslib.util.reflect.deep;
 
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
@@ -8,6 +9,7 @@ public abstract class SearchContext<T> {
     public SearchContext<T> after;
     public SearchContext<T> before;
     public String name;
+    public List<Class<? extends Annotation>> annotations;
     public List<Predicate<Integer>> modifierPredicators;
 
     public SearchContext(){
@@ -24,6 +26,11 @@ public abstract class SearchContext<T> {
         this.name=name;
         return this;
     }
+    public SearchContext<T> annotated(List<Class<? extends Annotation>> annotations){
+        this.annotations=annotations;
+        return this;
+    }
+
     /**
      * Takes a list of modifier predicators to decide if the method matches the modifiers.
      * @see java.lang.reflect.Modifier for information on what to use.
