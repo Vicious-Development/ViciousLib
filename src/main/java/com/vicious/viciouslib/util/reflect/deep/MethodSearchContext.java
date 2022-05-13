@@ -91,7 +91,7 @@ public class MethodSearchContext extends SearchContext<Method>{
     }
 
     @Override
-    public MethodSearchContext annotated(List<Class<? extends Annotation>> annotations) {
+    public MethodSearchContext annotated(Class<? extends Annotation>... annotations) {
         super.annotated(annotations);
         return this;
     }

@@ -9,7 +9,7 @@ public abstract class SearchContext<T> {
     public SearchContext<T> after;
     public SearchContext<T> before;
     public String name;
-    public List<Class<? extends Annotation>> annotations;
+    public Class<? extends Annotation>[] annotations;
     public List<Predicate<Integer>> modifierPredicators;
 
     public SearchContext(){
@@ -26,7 +26,7 @@ public abstract class SearchContext<T> {
         this.name=name;
         return this;
     }
-    public SearchContext<T> annotated(List<Class<? extends Annotation>> annotations){
+    public SearchContext<T> annotated(Class<? extends Annotation>... annotations){
         this.annotations=annotations;
         return this;
     }
