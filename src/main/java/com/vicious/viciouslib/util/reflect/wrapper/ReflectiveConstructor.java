@@ -26,7 +26,10 @@ public class ReflectiveConstructor extends ReflectiveObject<Constructor<?>>{
     }
     @Override
     public Constructor<?> getReflectiveTarget(Object target) {
-        if(o == null) o = Reflection.getConstructor(target,params);
+        if(o == null){
+            o = Reflection.getConstructor(target,params);
+            if(!o.isAccessible()) o.setAccessible(true);
+        }
         return o;
     }
 }

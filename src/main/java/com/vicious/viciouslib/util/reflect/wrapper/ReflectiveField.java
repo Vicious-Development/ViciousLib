@@ -29,7 +29,10 @@ public class ReflectiveField extends ReflectiveObject<Field>{
     }
     @Override
     public Field getReflectiveTarget(Object target) {
-        if(o == null) o = Reflection.getField(target,name);
+        if(o == null){
+            o = Reflection.getField(target,name);
+            if(!o.isAccessible()) o.setAccessible(true);
+        }
         return o;
     }
 }

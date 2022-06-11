@@ -18,7 +18,9 @@ public class ReflectiveMethodReturn extends ReflectiveMethod{
     }
     @Override
     public Method getReflectiveTarget(Object in) {
-        if(o == null) o = Reflection.getMethodReturn(in,name,returnType,params);
+        if(o == null){
+            o = Reflection.getMethodReturn(in,name,returnType,params);
+        }
         return o;
     }
 }
