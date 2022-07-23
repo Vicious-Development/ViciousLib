@@ -12,14 +12,14 @@ public class ReflectiveMethodReturn extends ReflectiveMethod{
         this.returnType=returnType;
     }
     public ReflectiveMethodReturn(Method m){
-        super(m.getName(),m.getParameterTypes());
+        super(m);
         returnType=m.getReturnType();
-        o=m;
     }
     @Override
     public Method getReflectiveTarget(Object in) {
         if(o == null){
             o = Reflection.getMethodReturn(in,name,returnType,params);
+            setAccessible();
         }
         return o;
     }

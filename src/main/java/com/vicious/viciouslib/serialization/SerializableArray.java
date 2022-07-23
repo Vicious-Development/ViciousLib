@@ -1,7 +1,7 @@
 package com.vicious.viciouslib.serialization;
 
 
-import com.vicious.viciouslib.util.TriConsumer;
+import com.vicious.viciouslib.util.interfaces.TriConsumer;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;

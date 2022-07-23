@@ -8,6 +8,11 @@ import java.lang.reflect.Method;
 public class ReflectiveMethod extends ReflectiveObject<Method>{
     protected String name;
     protected Class<?>[] params;
+    public ReflectiveMethod(Method m){
+        super(m);
+        this.name=m.getName();
+        this.params=m.getParameterTypes();
+    }
     public ReflectiveMethod(String name, Class<?>... params){
         this.name=name;
         this.params=params;
@@ -23,7 +28,10 @@ public class ReflectiveMethod extends ReflectiveObject<Method>{
     }
     @Override
     public Method getReflectiveTarget(Object in) {
-        if(o == null) o = Reflection.getMethod(in,name,params);
+        if(o == null){
+            o = Reflection.getMethod(in,name,params);
+            setAccessible();
+        }
         return o;
     }
 }

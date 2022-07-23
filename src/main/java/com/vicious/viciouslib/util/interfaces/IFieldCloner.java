@@ -1,4 +1,6 @@
-package com.vicious.viciouslib.util.reflect;
+package com.vicious.viciouslib.util.interfaces;
+
+import com.vicious.viciouslib.util.reflect.Reflection;
 
 import java.lang.reflect.Field;
 

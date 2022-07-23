@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.function.Predicate;
 
 public class MethodSearchContext extends SearchContext<Method>{
-    public Class<?> returnType;
     public Class<?>[] params;
     public Class<?>[] exceptions;
 
@@ -21,8 +20,8 @@ public class MethodSearchContext extends SearchContext<Method>{
     @Override
     public boolean matches(Method in) {
         //Did this to shut intellij up, same as &&.
-        if(name != null) if(!in.getName().equals(name)) return false;
-        if(returnType != null && returnType != in.getReturnType()) return false;
+        if(!super.matches(in)) return false;
+        if(type != null && type != in.getReturnType()) return false;
         if(params != null) {
             Class<?>[] inParams = in.getParameterTypes();
             if (inParams.length != params.length) return false;
@@ -35,17 +34,6 @@ public class MethodSearchContext extends SearchContext<Method>{
             if(exceptions.length != inExceptions.length) return false;
             for (int i = 0; i < exceptions.length; i++) {
                 if (exceptions[i] != inExceptions[i]) return false;
-            }
-        }
-        if(modifierPredicators != null){
-            int inMod = in.getModifiers();
-            for (Predicate<Integer> modifierPredicator : modifierPredicators) {
-                if(!modifierPredicator.test(inMod)) return false;
-            }
-        }
-        if(annotations != null){
-            for (Class<? extends Annotation> annotation : annotations) {
-                if(!in.isAnnotationPresent(annotation)) return false;
             }
         }
         return true;
@@ -82,7 +70,7 @@ public class MethodSearchContext extends SearchContext<Method>{
     }
 
     public MethodSearchContext returns(Class<?> type){
-        returnType=type;
+        this.type =type;
         return this;
     }
     public MethodSearchContext accepts(Class<?>... params){
@@ -99,7 +87,7 @@ public class MethodSearchContext extends SearchContext<Method>{
     @Override
     public String toString() {
         return "MethodSearchContext{" +
-                "returnType=" + returnType +
+                "returnType=" + type +
                 ", params=" + Arrays.toString(params) +
                 ", after=" + after +
                 ", before=" + before +

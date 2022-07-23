@@ -2,8 +2,10 @@ package com.vicious.viciouslib.util.reflect.deep;
 
 import com.vicious.viciouslib.LoggerWrapper;
 import com.vicious.viciouslib.util.JarReader;
+import com.vicious.viciouslib.util.reflect.wrapper.ReflectiveField;
 import com.vicious.viciouslib.util.reflect.wrapper.ReflectiveMethodReturn;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.Enumeration;
@@ -99,7 +101,20 @@ public class DeepReflection {
         }
         return new ReflectiveMethodReturn(obtained.get(0));
     }
-
+    public static ReflectiveField getField(Object target, FieldSearchContext ctx) throws TotalFailureException {
+        Class<?> cls = target instanceof Class<?> ? (Class<?>) target : target.getClass();
+        List<Field> obtained = cycleAndExecute(cls,(c)->{
+            List<Field> result = ctx.getAllMatchingWithin(c.getDeclaredFields());
+            return result.size() > 0 ? result : null;
+        });
+        if(obtained == null){
+            throw new TotalFailureException("Failed to locate method using all forms of searching. Are you sure it exists?");
+        }
+        else if(obtained.size() > 1){
+            throw new BadSearchException("Found " + obtained.size() + " results for the method search executed: " + ctx);
+        }
+        return new ReflectiveField(obtained.get(0));
+    }
     /**
      * Does same as above but does not fail if multiple methods are found.
      */

@@ -10,6 +10,10 @@ public class ReflectiveField extends ReflectiveObject<Field>{
     public ReflectiveField(String name){
         this.name=name;
     }
+    public ReflectiveField(Field f){
+        super(f);
+        this.name=f.getName();
+    }
     public Object get(Object target){
         try {
             return Reflection.accessField(target,getReflectiveTarget(target));
@@ -31,7 +35,8 @@ public class ReflectiveField extends ReflectiveObject<Field>{
     public Field getReflectiveTarget(Object target) {
         if(o == null){
             o = Reflection.getField(target,name);
-            if(!o.isAccessible()) o.setAccessible(true);
+            setAccessible();
+            definalize();
         }
         return o;
     }

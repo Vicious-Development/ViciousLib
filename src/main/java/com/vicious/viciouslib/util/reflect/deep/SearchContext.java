@@ -1,14 +1,17 @@
 package com.vicious.viciouslib.util.reflect.deep;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.AccessibleObject;
+import java.lang.reflect.Member;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 
-public abstract class SearchContext<T> {
+public abstract class SearchContext<T extends AccessibleObject & Member> {
     public SearchContext<T> after;
     public SearchContext<T> before;
     public String name;
+    public Class<?> type;
     public Class<? extends Annotation>[] annotations;
     public List<Predicate<Integer>> modifierPredicators;
 
@@ -39,7 +42,21 @@ public abstract class SearchContext<T> {
         this.modifierPredicators=modifierPredicators;
         return this;
     }
-    public abstract boolean matches(T in);
+    public boolean matches(T in){
+        if(name != null) if(!in.getName().equals(name)) return false;
+        if(annotations != null){
+            for (Class<? extends Annotation> annotation : annotations) {
+                if(!in.isAnnotationPresent(annotation)) return false;
+            }
+        }
+        if(modifierPredicators != null){
+            int inMod = in.getModifiers();
+            for (Predicate<Integer> modifierPredicator : modifierPredicators) {
+                if(!modifierPredicator.test(inMod)) return false;
+            }
+        }
+        return true;
+    }
     public List<T> getAllMatchingWithin(T[] objs){
         boolean matchedAfter = after == null;
         List<T> options = new ArrayList<>();

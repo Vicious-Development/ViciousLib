@@ -11,6 +11,7 @@ public class ReflectiveConstructor extends ReflectiveObject<Constructor<?>>{
         this.params=params;
     }
     public ReflectiveConstructor(Constructor<?> constructor){
+        super(constructor);
         this.params=constructor.getParameterTypes();
     }
     public Object construct(Class<?> constructorClass,Object... params){
@@ -28,7 +29,7 @@ public class ReflectiveConstructor extends ReflectiveObject<Constructor<?>>{
     public Constructor<?> getReflectiveTarget(Object target) {
         if(o == null){
             o = Reflection.getConstructor(target,params);
-            if(!o.isAccessible()) o.setAccessible(true);
+            setAccessible();
         }
         return o;
     }
