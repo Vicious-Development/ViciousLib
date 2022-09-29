@@ -1,0 +1,30 @@
+package com.vicious.viciouslib.jarloader.event.interceptor;
+
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Executable;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
+public class MethodEventInterceptor extends EventInterceptorInstance {
+    private final Executable exec;
+    public MethodEventInterceptor(Object interceptor, Executable exec, Class<?> eventType){
+        super(interceptor,eventType);
+        this.exec=exec;
+    }
+    public Object intercept(Object event) throws InvocationTargetException, IllegalAccessException, InstantiationException {
+        if(exec instanceof Method){
+            ((Method)exec).invoke(interceptor,event);
+        }
+        else if(exec instanceof Constructor){
+            return ((Constructor<?>)exec).newInstance(event);
+        }
+        return null;
+    }
+    public Class<?> getEventType(){
+        return eventType;
+    }
+
+    public Object getInterceptorObject() {
+        return interceptor;
+    }
+}

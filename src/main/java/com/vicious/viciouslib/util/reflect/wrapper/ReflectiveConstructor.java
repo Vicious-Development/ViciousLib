@@ -14,10 +14,9 @@ public class ReflectiveConstructor extends ReflectiveObject<Constructor<?>>{
         super(constructor);
         this.params=constructor.getParameterTypes();
     }
-    public Object construct(Class<?> constructorClass,Object... params){
+    public Object construct(Class<?> constructorClass, Object... params){
         Constructor<?> cnsrt = getReflectiveTarget(constructorClass);
         try {
-            if(!cnsrt.isAccessible()) cnsrt.setAccessible(true);
             return cnsrt.newInstance(params);
         } catch (Exception e){
             LoggerWrapper.logError(e.getMessage());

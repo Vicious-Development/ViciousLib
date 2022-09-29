@@ -21,7 +21,7 @@ import java.util.function.Consumer;
 //JSON Trackables have support for updating JSON objects.
 public class JSONTrackable<T extends JSONTrackable<T>> extends Trackable<T>{
     private List<Consumer<JSONTrackable<T>>> initalizationListeners = new ArrayList<>();
-    private List<Consumer<JSONTrackable<T>>> readListeners = new ArrayList<>();
+    protected List<Consumer<JSONTrackable<T>>> readListeners = new ArrayList<>();
     private List<Consumer<JSONTrackable<T>>> writeListeners = new ArrayList<>();
     private boolean initialized = false;
     public void executeIfInitialized(Consumer<JSONTrackable<T>> consumer){
@@ -34,7 +34,7 @@ public class JSONTrackable<T extends JSONTrackable<T>> extends Trackable<T>{
     public void executeOnWrite(Consumer<JSONTrackable<T>> consumer){
         writeListeners.add(consumer);
     }
-    private ScheduledFuture<?> readWriteTask;
+    protected ScheduledFuture<?> readWriteTask;
     protected JSONObject jsonObj = new JSONObject();
     public JSONTrackable(String path ,TrackableValue<?>... extraValues){
         this(FileUtil.toPath(path), extraValues);

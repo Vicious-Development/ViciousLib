@@ -6,7 +6,7 @@ import com.vicious.viciouslib.util.reflect.Reflection;
 import java.lang.reflect.Field;
 
 public class ReflectiveField extends ReflectiveObject<Field>{
-    private String name;
+    private final String name;
     public ReflectiveField(String name){
         this.name=name;
     }
@@ -16,7 +16,7 @@ public class ReflectiveField extends ReflectiveObject<Field>{
     }
     public Object get(Object target){
         try {
-            return Reflection.accessField(target,getReflectiveTarget(target));
+            return getReflectiveTarget(target).get(target);
         } catch (Exception e){
             LoggerWrapper.logError(e.getMessage());
             e.printStackTrace();

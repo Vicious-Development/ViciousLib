@@ -1,25 +1,17 @@
 plugins {
-    id 'com.github.johnrengelman.shadow' version '6.1.0'
-    id "net.kyori.blossom" version "1.1.0"
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
     id "maven-publish"
+    id 'java'
 }
 
 repositories {
-    jcenter()
     maven { url 'https://jitpack.io' }
     mavenCentral()
 }
 
-group = 'vicious'
+group = 'com.vicious'
 
-version = '2.1.0'
-
-blossom {
-    replaceToken '@version@', version
-}
-
-sourceCompatibility = '1.8'
-targetCompatibility = '1.8'
+version = '17.2.1.8'
 
 dependencies {
     compileOnly 'org.json:json:20220320'
@@ -56,4 +48,3 @@ publishing {
 shadowJar {
     archiveFileName = "ViciousLib-${version}.jar"
 }
-compileJava.options.encoding = 'UTF-8'

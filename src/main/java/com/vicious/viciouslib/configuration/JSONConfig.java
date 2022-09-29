@@ -19,6 +19,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Collection;
 import java.util.Map;
+import java.util.function.Consumer;
 
 public class JSONConfig extends JSONTrackable<JSONConfig> {
 
@@ -35,6 +36,8 @@ public class JSONConfig extends JSONTrackable<JSONConfig> {
         super(p,extraValues);
     }
 
+    public boolean writeComments = true;
+
     public void overWriteFile() {
         StringWriter writer = new StringWriter();
         writer.write("{");
@@ -44,12 +47,12 @@ public class JSONConfig extends JSONTrackable<JSONConfig> {
                 TrackableValue<?> value = vals[i];
                 writer.append("\n");
                 if(value.value() == null) {
-                    writer.append(((ConfigurationValue<?>) value).getTab() + '"' + value.name + '"' + ": ");
                     writeValue(writer,null,0,0);
                 }
                 if (value instanceof ConfigurationValue<?>) {
-                    writer.append(((ConfigurationValue<?>) value).getTab() + '"' + value.name + '"' + ": ");
-                    writeValue(writer,((ConfigurationValue<?>) value).getStopValue(),0,0);
+                    ConfigurationValue<?> cv = (ConfigurationValue<?>) value;
+                    writer.append(cv.getTab() + '"' + value.name + '"' + ": ");
+                    writeValue(writer,cv.getStopValue(),0,0);
                 } else {
                     writer.append('"' + value.name + '"' + ": ");
                     writeValue(writer,value.getJSONValue(),0,0);
@@ -68,6 +71,36 @@ public class JSONConfig extends JSONTrackable<JSONConfig> {
             LoggerWrapper.logError("Failed to save a Config " + getClass().getCanonicalName() + " caused by: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    public JSONConfig readFromJSON(){
+        boolean ow = false;
+        try {
+            JSONObject obj = FileUtil.loadJSON(PATH);
+            for (TrackableValue<?> value : values.values()) {
+                try {
+                    value.setFromJSON(obj);
+                } catch (JSONException e){
+                    ow = true;
+                }
+            }
+        } catch(Exception e){
+            if(e instanceof JSONException){}
+            else {
+                //IOE happens if the file doesn't exist. If it doesn't no values will be updated anyways which is totally fine.
+                LoggerWrapper.logError("Failed to read a jsontrackable " + getClass().getCanonicalName() + " caused by: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+        if(readWriteTask != null){
+            onInitialization();
+            readWriteTask = null;
+        }
+        for (Consumer<JSONTrackable<JSONConfig>> readListener : readListeners) {
+            readListener.accept(this);
+        }
+        if(ow) save();
+        return this;
     }
 
 

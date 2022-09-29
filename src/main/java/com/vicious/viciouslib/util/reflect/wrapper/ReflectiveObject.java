@@ -2,10 +2,7 @@ package com.vicious.viciouslib.util.reflect.wrapper;
 
 import com.vicious.viciouslib.LoggerWrapper;
 
-import java.lang.reflect.AccessibleObject;
-import java.lang.reflect.Field;
-import java.lang.reflect.Member;
-import java.lang.reflect.Modifier;
+import java.lang.reflect.*;
 
 /**
  * Stores Reflectively obtained objects.
@@ -14,6 +11,20 @@ public abstract class ReflectiveObject<T extends AccessibleObject & Member> {
     private static Field MODIFIERSFIELD;
     private static boolean canDefinalize = true;
     protected T o;
+
+    public static ReflectiveObject<?> of(AnnotatedElement elem) {
+        if(elem instanceof Method){
+            return new ReflectiveMethod((Method)elem);
+        }
+        if(elem instanceof Constructor){
+            return new ReflectiveConstructor((Constructor<?>)elem);
+        }
+        if(elem instanceof Field){
+            return new ReflectiveField((Field) elem);
+        }
+        return null;
+    }
+
     public abstract T getReflectiveTarget(Object in);
     public ReflectiveObject(){}
     public ReflectiveObject(T o){
@@ -42,7 +53,14 @@ public abstract class ReflectiveObject<T extends AccessibleObject & Member> {
         return this;
     }
     public ReflectiveObject<T> setAccessible(){
-        o.setAccessible(true);
+        if(!o.isAccessible()) o.setAccessible(true);
         return this;
+    }
+    public T target(){
+        return o;
+    }
+
+    public boolean isStatic() {
+        return Modifier.isStatic(o.getModifiers());
     }
 }
