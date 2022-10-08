@@ -13,9 +13,15 @@ public abstract class AnnotationProcessor<ANNOTATION extends Annotation, ON> {
         this.annotationClass = annotationClass;
     }
     public final void processObject(Object object, AnnotatedElement element){
-        process(acceptsClass.cast(object),element);
+        try {
+            process(acceptsClass.cast(object), element);
+        } catch (Exception e){
+            err(element,"caused an error while processing ",e);
+        }
     }
-    public abstract void process(ON object, AnnotatedElement element);
+
+
+    public abstract void process(ON object, AnnotatedElement element) throws Exception;
     public Class<ANNOTATION> getAnnotationClass(){
         return annotationClass;
     }
@@ -33,6 +39,9 @@ public abstract class AnnotationProcessor<ANNOTATION extends Annotation, ON> {
 
     public void err(AnnotatedElement element, String cause){
         throw new InvalidAnnotationException(Aunotamation.getElementName(element) + " in " + Aunotamation.getElementLocation(element).getCanonicalName() + " annotated with " + annotationClass.getName() + " " + cause);
+    }
+    public void err(AnnotatedElement element, String cause, Exception ex){
+        throw new InvalidAnnotationException(Aunotamation.getElementName(element) + " in " + Aunotamation.getElementLocation(element).getCanonicalName() + " annotated with " + annotationClass.getName() + " " + cause + ":" + ex.getMessage(),ex);
     }
 
     @Override

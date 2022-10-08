@@ -1,6 +1,6 @@
 package com.vicious.viciouslib.aunotamation;
 
-import com.vicious.viciouslib.aunotamation.all.annotation.*;
+import com.vicious.viciouslib.aunotamation.annotation.*;
 import com.vicious.viciouslib.util.ClassAnalyzer;
 import com.vicious.viciouslib.util.reflect.ClassManifest;
 import com.vicious.viciouslib.util.reflect.deep.DeepReflection;
@@ -13,6 +13,8 @@ import java.util.Map;
 
 public class Aunotamation {
     private static final Map<Class<?>,AnnotationProcessor<?,?>> processors = new HashMap<>();
+    private static final Map<Class<?>,ObjectProcessor> objectProcessors = new HashMap<>();
+
     static {
         registerProcessor(new AnnotationProcessor<>(ModifiedWith.class,Class.class){
             @Override
@@ -97,8 +99,11 @@ public class Aunotamation {
         }
         return modifiers.toString();
     }
-    private static void registerProcessor(AnnotationProcessor<?,?> processor){
+    public static void registerProcessor(AnnotationProcessor<?,?> processor){
         processors.put(processor.getAnnotationClass(),processor);
+    }
+    public static void registerObjectProcessor(Class<?> cls, ObjectProcessor processor){
+        objectProcessors.put(cls, processor);
     }
 
     private static boolean hasModifiers(int modifiers, ModifiedWith mods){
@@ -121,15 +126,17 @@ public class Aunotamation {
         return instanceOf.value().isAssignableFrom(type);
     }
 
-    public static void processObject(Object o) {
-        DeepReflection.cycleAndExecute(o.getClass(),(objectType)-> {
+    public static <T> T processObject(T o) {
+        DeepReflection.cycleAndExecute(o instanceof Class k ? k : o.getClass(),(objectType)-> {
             boolean doCompileCheck = false;
             if (!ClassAnalyzer.manifests.containsKey(objectType)) {
                 ClassAnalyzer.analyzeClass(objectType);
                 doCompileCheck = true;
             }
             ClassManifest<?> manifest = ClassAnalyzer.manifests.get(objectType);
-
+            if(objectProcessors.containsKey(objectType)){
+                objectProcessors.get(objectType).process(o);
+            }
             for (AnnotatedElement aunotamatedTarget : manifest.getAunotamatedTargets()) {
                 //Gets the processors for the object type
                 for (Annotation annotation : aunotamatedTarget.getAnnotations()) {
@@ -147,6 +154,7 @@ public class Aunotamation {
             }
             return null;
         });
+        return o;
     }
     private static void process(AnnotationProcessor<?,?> proc, Object o, AnnotatedElement element, boolean compileCheck){
         if(compileCheck) Aunotamation.validateAnnotation(proc.getAnnotationClass(),element);

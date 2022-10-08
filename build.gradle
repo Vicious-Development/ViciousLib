@@ -9,9 +9,9 @@ repositories {
     mavenCentral()
 }
 
-group = 'com.vicious'
+group = 'vicious'
 
-version = '17.2.1.8'
+version = '17-2.2.3'
 
 dependencies {
     compileOnly 'org.json:json:20220320'

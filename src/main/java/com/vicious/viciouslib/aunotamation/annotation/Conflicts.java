@@ -1,4 +1,4 @@
-package com.vicious.viciouslib.aunotamation.all.annotation;
+package com.vicious.viciouslib.aunotamation.annotation;
 
 import java.lang.annotation.*;
 
