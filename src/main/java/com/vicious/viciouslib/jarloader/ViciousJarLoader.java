@@ -2,13 +2,13 @@ package com.vicious.viciouslib.jarloader;
 
 import com.google.common.reflect.TypeResolver;
 import com.vicious.viciouslib.LoggerWrapper;
+import com.vicious.viciouslib.aunotamation.AnnotationProcessor;
+import com.vicious.viciouslib.aunotamation.Aunotamation;
 import com.vicious.viciouslib.jarloader.event.EventInterceptor;
 import com.vicious.viciouslib.jarloader.event.interceptor.EventInterceptorInstance;
-import com.vicious.viciouslib.jarloader.event.VEvent;
 import com.vicious.viciouslib.jarloader.event.interceptor.LambdaEventInterceptor;
 import com.vicious.viciouslib.jarloader.event.interceptor.MethodEventInterceptor;
 import com.vicious.viciouslib.util.ClassAnalyzer;
-import com.vicious.viciouslib.util.reflect.ClassManifest;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,19 +19,18 @@ import java.util.function.Consumer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-public class ViciousJarLoader implements ClassAnalyzer{
+public class ViciousJarLoader {
     private static ViciousJarLoader instance;
     public static ViciousJarLoader getInstance(){
         if(instance == null) instance = new ViciousJarLoader();
         return instance;
     }
+    private ViciousJarLoader(){}
+
     private final TypeResolver typeResolver = new TypeResolver();
     private final Map<Class<?>,JarInstance<?>> instances = new HashMap<>();
     private final Map<Class<?>, Set<EventInterceptorInstance>> eventInterceptors = new HashMap<>();
     private final Map<Object, Set<EventInterceptorInstance>> interceptorMap = new HashMap<>();
-    private ViciousJarLoader(){
-        ClassAnalyzer.addAnalyzer(this);
-    }
     public void sendEvent(Object entryEvent) {
         Set<EventInterceptorInstance> interceptors = eventInterceptors.get(entryEvent.getClass());
         if(interceptors != null){
@@ -93,34 +92,17 @@ public class ViciousJarLoader implements ClassAnalyzer{
         }
     }
 
-    @Override
-    public <T> void receiveManifest(ClassManifest<T> manifest){
-        //Register all methods that accept VEvents
-        if(manifest.getTargetClass().isAnnotationPresent(EventInterceptor.class)){
-            for (Method m : manifest.getMethods()) {
-                if (Modifier.isStatic(m.getModifiers()) && m.getParameterCount() == 1 && VEvent.class.isAssignableFrom(m.getParameterTypes()[0])) {
-                    registerEventInterceptor(m.getParameterTypes()[0], manifest.getTargetClass(), m);
+    public static void init(){
+        Aunotamation.registerProcessor(new AnnotationProcessor<>(EventInterceptor.class,Object.class) {
+            @Override
+            public void process(Object object, AnnotatedElement elem) throws Exception {
+                if (elem instanceof Method m) {
+                    ViciousJarLoader.getInstance().registerEventInterceptor(m.getParameterTypes()[0], object, m);
+                } else if (elem instanceof Constructor<?> c) {
+                    ViciousJarLoader.getInstance().registerEventInterceptor(c.getParameterTypes()[0], object, c);
                 }
             }
-        }
-        else {
-            List<AnnotatedElement> elems = manifest.getMembersWithAnnotation(EventInterceptor.class);
-            if (elems != null) {
-                for (AnnotatedElement elem : elems) {
-                    if (elem instanceof Method) {
-                        Method m = (Method) elem;
-                        if (Modifier.isStatic(m.getModifiers()) && m.getParameterCount() == 1) {
-                            registerEventInterceptor(m.getParameterTypes()[0], manifest.getTargetClass(), m);
-                        }
-                    } else if (elem instanceof Constructor<?>) {
-                        Constructor<?> c = (Constructor<?>) elem;
-                        if (c.getParameterCount() == 1) {
-                            registerEventInterceptor(c.getParameterTypes()[0], manifest.getTargetClass(), c);
-                        }
-                    }
-                }
-            }
-        }
+        });
     }
 
     private void registerEventInterceptor(Class<?> eventType, Object target, Executable exec){
@@ -131,32 +113,6 @@ public class ViciousJarLoader implements ClassAnalyzer{
         interceptors.add(inst);
         interceptors = interceptorMap.computeIfAbsent(inst.getInterceptorObject(), k -> new HashSet<>());
         interceptors.add(inst);
-    }
-
-    @Override
-    public <T> void receiveObjectManifest(ClassManifest<T> manifest, Object o) {
-        //Register all methods that accept VEvents
-        if(manifest.getTargetClass().isAnnotationPresent(EventInterceptor.class)){
-            for (Method m : manifest.getMethods()) {
-                if (!Modifier.isStatic(m.getModifiers()) && m.getParameterCount() == 1 && VEvent.class.isAssignableFrom(m.getParameterTypes()[0])) {
-                    registerEventInterceptor(m.getParameterTypes()[0], o, m);
-                }
-            }
-        }
-        else {
-            //Register only specified methods.
-            List<AnnotatedElement> elems = manifest.getMembersWithAnnotation(EventInterceptor.class);
-            if (elems != null) {
-                for (AnnotatedElement elem : elems) {
-                    if (elem instanceof Method) {
-                        Method m = (Method) elem;
-                        if (!Modifier.isStatic(m.getModifiers()) && m.getParameterCount() == 1) {
-                            registerEventInterceptor(m.getParameterTypes()[0], o, m);
-                        }
-                    }
-                }
-            }
-        }
     }
 
     /**

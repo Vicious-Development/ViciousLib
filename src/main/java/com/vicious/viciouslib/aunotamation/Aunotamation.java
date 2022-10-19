@@ -7,15 +7,19 @@ import com.vicious.viciouslib.util.reflect.deep.DeepReflection;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class Aunotamation {
     private static final Map<Class<?>,AnnotationProcessor<?,?>> processors = new HashMap<>();
     private static final Map<Class<?>,ObjectProcessor> objectProcessors = new HashMap<>();
 
-    static {
+    private static Map<Class<?>,List<Runnable>> runOnInit = new HashMap<>();
+
+    public static void init(){
+        if(hasProcessor(ModifiedWith.class)){
+            return;
+        }
         registerProcessor(new AnnotationProcessor<>(ModifiedWith.class,Class.class){
             @Override
             public void process(Class cls, AnnotatedElement element) {
@@ -58,7 +62,28 @@ public class Aunotamation {
             public void process(Class cls, AnnotatedElement element) {
                 AllowedIn allowedIn = (AllowedIn) cls.getAnnotation(AllowedIn.class);
                 if(!allowedIn.value().isAssignableFrom(getElementLocation(element))){
-                    err(element, "must be in a class that is of type" + allowedIn.value().getCanonicalName());
+                    err(element, "must be in a class that is of type " + allowedIn.value().getCanonicalName());
+                }
+            }
+        });
+        registerProcessor(new AnnotationProcessor<>(Parameters.class,Class.class) {
+            @Override
+            public void process(Class cls, AnnotatedElement element) {
+                Parameters parameters = (Parameters) cls.getAnnotation(Parameters.class);
+                if(element instanceof Executable executable){
+                    Class<?>[] actual = executable.getParameterTypes();
+                    Class<?>[] expected = parameters.value();
+                    if(actual.length != expected.length){
+                        err(element,"accepts a different amount of parameters than expected! Expected: " + Arrays.toString(expected));
+                    }
+                    for (int i = 0; i < actual.length; i++) {
+                        if(!expected[i].isAssignableFrom(actual[i])){
+                            err(element,"expected type assignable from " + expected[i].getCanonicalName());
+                        }
+                    }
+                }
+                else{
+                    err(element, "must be a method or a constructor");
                 }
             }
         });
@@ -101,6 +126,11 @@ public class Aunotamation {
     }
     public static void registerProcessor(AnnotationProcessor<?,?> processor){
         processors.put(processor.getAnnotationClass(),processor);
+        if(runOnInit.containsKey(processor.getAnnotationClass())){
+            for (Runnable runnable : runOnInit.remove(processor.getAnnotationClass())) {
+                runnable.run();
+            }
+        }
     }
     public static void registerObjectProcessor(Class<?> cls, ObjectProcessor processor){
         objectProcessors.put(cls, processor);
@@ -127,37 +157,61 @@ public class Aunotamation {
     }
 
     public static <T> T processObject(T o) {
+        AtomicReference<InvalidAnnotationException> ex = new AtomicReference<>();
         DeepReflection.cycleAndExecute(o instanceof Class k ? k : o.getClass(),(objectType)-> {
-            boolean doCompileCheck = false;
-            if (!ClassAnalyzer.manifests.containsKey(objectType)) {
-                ClassAnalyzer.analyzeClass(objectType);
-                doCompileCheck = true;
+            if(ex.get() != null){
+                return null;
             }
-            ClassManifest<?> manifest = ClassAnalyzer.manifests.get(objectType);
-            if(objectProcessors.containsKey(objectType)){
-                objectProcessors.get(objectType).process(o);
-            }
-            for (AnnotatedElement aunotamatedTarget : manifest.getAunotamatedTargets()) {
-                //Gets the processors for the object type
-                for (Annotation annotation : aunotamatedTarget.getAnnotations()) {
-                    if(processors.containsKey(annotation.annotationType())){
-                        AnnotationProcessor<?,?> processor = processors.get(annotation.annotationType());
-                        if(processor.getAnnotationClass().isAnnotationPresent(Extends.class)){
-                            Extends extensions = processor.getAnnotationClass().getAnnotation(Extends.class);
-                            for (Class<? extends Annotation> extension : extensions.value()) {
-                                process(Aunotamation.processors.get(extension),o,aunotamatedTarget,doCompileCheck);
+            try {
+                boolean doCompileCheck = false;
+                if (!ClassAnalyzer.manifests.containsKey(objectType)) {
+                    ClassAnalyzer.analyzeClass(objectType);
+                    doCompileCheck = true;
+                }
+                ClassManifest<?> manifest = ClassAnalyzer.manifests.get(objectType);
+                if (objectProcessors.containsKey(objectType)) {
+                    objectProcessors.get(objectType).process(o);
+                }
+                for (AnnotatedElement aunotamatedTarget : manifest.getAunotamatedTargets()) {
+                    //Gets the processors for the object type
+                    for (Annotation annotation : aunotamatedTarget.getAnnotations()) {
+                        if (processors.containsKey(annotation.annotationType())) {
+                            AnnotationProcessor<?, ?> processor = processors.get(annotation.annotationType());
+                            if (processor.getAnnotationClass().isAnnotationPresent(Extends.class)) {
+                                Extends extensions = processor.getAnnotationClass().getAnnotation(Extends.class);
+                                for (Class<? extends Annotation> extension : extensions.value()) {
+                                    AnnotationProcessor<?,?> internal = processors.get(extension);
+                                    //Automatically register annotation processors for those without it.
+                                    if(internal == null){
+                                        internal = new AnnotationProcessor<>((Class<Annotation>) extension,Object.class) {
+                                            @Override
+                                            public void process(Object object, AnnotatedElement element){}
+                                        };
+                                        registerProcessor(internal);
+                                    }
+                                    process(internal, o, aunotamatedTarget, doCompileCheck);
+                                }
                             }
+                            process(processor, o, aunotamatedTarget, doCompileCheck);
                         }
-                        process(processor,o,aunotamatedTarget,doCompileCheck);
                     }
                 }
+            } catch (InvalidAnnotationException e){
+                ex.set(e);
             }
             return null;
         });
+        if(ex.get() != null){
+            throw ex.get();
+        }
         return o;
     }
     private static void process(AnnotationProcessor<?,?> proc, Object o, AnnotatedElement element, boolean compileCheck){
-        if(compileCheck) Aunotamation.validateAnnotation(proc.getAnnotationClass(),element);
+        if(compileCheck){
+            if (!proc.getAnnotationClass().isAnnotationPresent(ManuallyCompile.class)) {
+                Aunotamation.validateAnnotation(proc.getAnnotationClass(), element);
+            }
+        }
         proc.processObject(o, element);
     }
 
@@ -177,5 +231,11 @@ public class Aunotamation {
 
     public static boolean hasProcessor(Class<? extends Annotation> annotationType) {
         return processors.containsKey(annotationType);
+    }
+    public static void waitForRegistration(Class<? extends Annotation> annotationClass, Runnable run){
+        if(hasProcessor(annotationClass)){
+            run.run();
+        }
+        else runOnInit.computeIfAbsent(annotationClass,(k)->new ArrayList<>()).add(run);
     }
 }

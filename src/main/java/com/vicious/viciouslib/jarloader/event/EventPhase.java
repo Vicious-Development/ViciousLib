@@ -4,3 +4,4 @@ public enum EventPhase {
     BEFORE,
     AFTER
 }
+

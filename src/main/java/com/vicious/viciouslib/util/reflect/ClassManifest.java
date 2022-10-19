@@ -13,6 +13,7 @@ public class ClassManifest<T> {
     private final Class<T> cls;
     public ClassManifest(Class<T> cls){
         this.cls=cls;
+        handleAnnotations(cls);
         process();
     }
     @SuppressWarnings("unchecked")
