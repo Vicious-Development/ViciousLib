@@ -48,22 +48,22 @@ public class JSONMapping{
     @SuppressWarnings("unchecked")
     private <V extends Number> V asN(Class<V> cls){
         Number n = (Number) mapping;
-        if(int.class == cls){
+        if(int.class == cls || Integer.class == cls){
             return (V)(Integer)n.intValue();
         }
-        if(double.class == cls){
+        if(double.class == cls || Double.class == cls){
             return (V)(Double)n.doubleValue();
         }
-        if(float.class == cls){
+        if(float.class == cls || Float.class == cls){
             return (V)(Float)n.floatValue();
         }
-        if(long.class == cls){
+        if(long.class == cls || Long.class == cls){
             return (V)(Long)n.longValue();
         }
-        if(short.class == cls) {
+        if(short.class == cls || Short.class == cls) {
             return (V) (Short) n.shortValue();
         }
-        if(byte.class == cls){
+        if(byte.class == cls || Byte.class == cls){
             return (V)(Byte)n.byteValue();
         }
         return (V)n;

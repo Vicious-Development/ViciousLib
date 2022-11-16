@@ -58,7 +58,9 @@ public class JSONWriter {
         }
         else{
             tab(tabs,builder);
-            builder.append(name).append(" = ").append(value.get()).append("\n");
+            boolean string = value.get() instanceof String;
+            builder.append(name).append(" = ").append(string ? '\"' : "").append(value.get()).append("\n");
+            if(string) builder.append('\"');
         }
         if(value instanceof JSONMapping.Persistent persistent) {
             for (Map.Entry<String, JSONMapping.Persistent> entry : persistent.children) {

@@ -53,12 +53,16 @@ public class JSONParser {
         String name = parseName(line);
         skipSyntax(line);
         AssumedType value = parseValue(line);
+        String parsed = value.string;
+        if(parsed.startsWith("\"") && parsed.endsWith("\"")){
+            parsed = parsed.substring(1,parsed.length()-1);
+        }
         if(value instanceof AssumedType.Map){
             JSONParser inner = new JSONParser(scan);
             map.put(name, new JSONMapping(inner.getMap(),"{...}"));
         }
         else {
-            map.put(name, new JSONMapping(Deserializer.fix(value.string, value.type), value.string));
+            map.put(name, new JSONMapping(Deserializer.fix(parsed, value.type), parsed));
         }
     }
 

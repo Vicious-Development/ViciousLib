@@ -41,6 +41,9 @@ public class Deserializer {
             if(Character.isDigit(c)){
                 out.append(c);
             }
+            else{
+                break;
+            }
         }
         return out.toString();
     }
