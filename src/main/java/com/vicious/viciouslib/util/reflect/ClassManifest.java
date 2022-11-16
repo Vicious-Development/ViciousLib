@@ -5,7 +5,10 @@ import com.vicious.viciouslib.util.ClassAnalyzer;
 import com.vicious.viciouslib.util.reflect.deep.DeepReflection;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.*;
+import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -41,10 +44,12 @@ public class ClassManifest<T> {
     private final Map<Class<? extends Annotation>, List<AnnotatedElement>> annotatedTargets = new HashMap<>();
     private final Map<String, Method> methods = new HashMap<>();
     private final Map<String, Field> fields = new HashMap<>();
-    private final Set<AnnotatedElement> aunotamatedTargets = new HashSet<>();
+    private final Set<AnnotatedElement> aunotamatedTargets = new LinkedHashSet<>();
     public Set<AnnotatedElement> getAunotamatedTargets(){
         return aunotamatedTargets;
     }
+
+
     private void addAunotamatedTarget(AnnotatedElement element){
         aunotamatedTargets.add(element);
     }
@@ -95,7 +100,7 @@ public class ClassManifest<T> {
     }
 
     public <T extends Annotation> List<AnnotatedElement> getMembersWithAnnotation(Class<T> annotation){
-        return annotatedTargets.get(annotation);
+        return annotatedTargets.getOrDefault(annotation,new ArrayList<>());
     }
     public Method getMethod(String name){
         return methods.get(name);

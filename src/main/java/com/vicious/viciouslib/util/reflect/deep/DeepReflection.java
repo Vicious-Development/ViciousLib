@@ -202,4 +202,20 @@ public class DeepReflection {
         //Try superclass
         return cycleAndExecute(cls.getSuperclass(),func);
     }
+
+    public static <T> T cycleAndExecute(Class<?> cls, Function<Class<?>,T> func, Predicate<Class<?>> predicate){
+        if(cls == null) return null;
+        //Try current class.
+        if(predicate.test(cls)) {
+            T t = func.apply(cls);
+            if (t != null) return t;
+            //Try Interfaces
+            for (Class<?> itf : cls.getInterfaces()) {
+                t = cycleAndExecute(itf, func,predicate);
+                if (t != null) return t;
+            }
+            //Try superclass
+        }
+        return cycleAndExecute(cls.getSuperclass(),func,predicate);
+    }
 }

@@ -1,5 +1,6 @@
 package com.vicious.viciouslib.database.tracking.concurrency;
 
+import com.vicious.viciouslib.LoggerWrapper;
 import com.vicious.viciouslib.database.sqlcomponents.SQLCommand;
 import com.vicious.viciouslib.database.tracking.Trackable;
 
@@ -32,7 +33,7 @@ public class TrackableConcurrencyMap<K,V extends Trackable<V>> extends HashMap<K
                 try {
                     Trackable.handler.getDB().safeExecute(entry.value.getSQLNewCommand(), entry.value);
                 } catch (SQLException e) {
-                    System.out.println("Failed to add a data value to the database.");
+                    LoggerWrapper.logError("Failed to add a data value to the database.");
                     e.printStackTrace();
                 }
             }

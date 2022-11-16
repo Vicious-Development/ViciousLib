@@ -76,7 +76,7 @@ public class Reflection {
             } else return m.invoke(accessed, args);
         } catch(IllegalAccessException ignored){
         } catch (InvocationTargetException e) {
-            System.out.println("Failed to Reflectively invoke!");
+            LoggerWrapper.logError("Failed to Reflectively invoke!");
             e.getCause().printStackTrace();
         }
         return null;

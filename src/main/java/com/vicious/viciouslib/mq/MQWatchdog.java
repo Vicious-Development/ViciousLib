@@ -35,7 +35,7 @@ public class MQWatchdog {
             if (counter > MQWatchdog.MAX_RETRIES) {
                 LoggerWrapper.logError("MQWatchdog Max Retry Exceeded!");
                 //TODO: implement some sort of Comm handler
-                //DiscordDoor.sendMessage(LibCFG.getInstance().universalName.value(), "Unable to reconnect to MQ after 5 attempts! Creating new local MQ instance... If this message repeats, restart the server.");
+                //DiscordDoor.sendMessage(ViciousLibConfig.get().universalName.value(), "Unable to reconnect to MQ after 5 attempts! Creating new local MQ instance... If this message repeats, restart the server.");
                 MQCore.getInstance().reconnect();
                 return;
             }

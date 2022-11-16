@@ -1,3 +1,4 @@
+
 package com.vicious.viciouslib;
 
 import com.vicious.viciouslib.configuration.ConfigurationValue;

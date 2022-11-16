@@ -8,5 +8,5 @@ import java.nio.file.Paths;
 public class LibConstants {
     public static Path configPath = FileUtil.createDirectoryIfDNE("config");
     public static Path viciousConfigDirectoryPath = FileUtil.createDirectoryIfDNE(configPath.toAbsolutePath() + "/vicious");
-    public static Path libConfigPath = Paths.get(viciousConfigDirectoryPath.toAbsolutePath() + "/lib.json");
+    public static Path libConfigPath = Paths.get(viciousConfigDirectoryPath.toAbsolutePath() + "/lib.cfg");
 }

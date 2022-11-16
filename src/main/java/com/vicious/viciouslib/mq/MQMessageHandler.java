@@ -3,8 +3,8 @@ package com.vicious.viciouslib.mq;
 
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
-import com.vicious.viciouslib.LibCFG;
 import com.vicious.viciouslib.LoggerWrapper;
+import com.vicious.viciouslib.persistence.ViciousLibConfig;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -27,7 +27,7 @@ public class MQMessageHandler {
                 consumer.accept(in);
             }
             else {
-               if(LibCFG.getInstance().MQ404.getBoolean()){
+               if(ViciousLibConfig.get().mq404.get()){
                    LoggerWrapper.logError("Error404: MQHandler not found for: " + application);
                }
             }

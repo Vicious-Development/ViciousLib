@@ -2,8 +2,8 @@ package com.vicious.viciouslib.mq;
 
 import com.rabbitmq.client.*;
 import com.rabbitmq.client.impl.DefaultExceptionHandler;
-import com.vicious.viciouslib.LibCFG;
 import com.vicious.viciouslib.LoggerWrapper;
+import com.vicious.viciouslib.persistence.ViciousLibConfig;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -16,22 +16,10 @@ public class MQCore {
     private static MQCore instance;
 
     private MQCore(){
-        LibCFG.getInstance().executeOnRead((t)->{
-            if(LibCFG.getInstance().mqEnabled.getBoolean()){
-                if(handler == null) {
-                    start();
-                    handler = new MQMessageHandler();
-                }
-            }
-        });
-        LibCFG.getInstance().executeOnWrite((t)->{
-            if(LibCFG.getInstance().mqEnabled.getBoolean()){
-                if(handler == null) {
-                    start();
-                    handler = new MQMessageHandler();
-                }
-            }
-        });
+        if(ViciousLibConfig.get().mqEnabled.get()){
+            start();
+            handler = new MQMessageHandler();
+        }
     }
     public static MQCore getInstance(){
         if(instance == null){
@@ -50,12 +38,12 @@ public class MQCore {
     public void setConnection() {
         try {
             ConnectionFactory factory = new ConnectionFactory();
-            factory.setHost(LibCFG.getInstance().mqHost.value());
-            factory.setUsername(LibCFG.getInstance().mqUser.value());
-            factory.setPassword(LibCFG.getInstance().mqPass.value());
-            factory.setAutomaticRecoveryEnabled(LibCFG.getInstance().mqAutomaticRecovery.value());
-            factory.setRequestedHeartbeat(LibCFG.getInstance().mqHeartbeat.value());
-            factory.setConnectionTimeout(LibCFG.getInstance().mqTimeout.value());
+            factory.setHost(ViciousLibConfig.get().mqHost.get());
+            factory.setUsername(ViciousLibConfig.get().mqUser.get());
+            factory.setPassword(ViciousLibConfig.get().mqPass.get());
+            factory.setAutomaticRecoveryEnabled(ViciousLibConfig.get().mqAutomaticRecovery.get());
+            factory.setRequestedHeartbeat(ViciousLibConfig.get().mqHeartbeat.get());
+            factory.setConnectionTimeout(ViciousLibConfig.get().mqTimeout.get());
             final ExceptionHandler eh = new DefaultExceptionHandler() {
                 @Override
                 public void handleConsumerException(Channel channel, Throwable exception, Consumer consumer, String consumerTag, String methodName) {
@@ -64,8 +52,8 @@ public class MQCore {
                 }
             };
             factory.setExceptionHandler(eh);
-            factory.setRequestedChannelMax(LibCFG.getInstance().mqMaxChannels.value());
-            connection = factory.newConnection(LibCFG.getInstance().universalName.value());
+            factory.setRequestedChannelMax(ViciousLibConfig.get().mqMaxChannels.value());
+            connection = factory.newConnection(ViciousLibConfig.get().universalName.value());
             connection.addShutdownListener(cause -> {
                 String message = "MQ connection shutdown due to " + cause.getReason().protocolMethodName() + "::\n" + cause.getLocalizedMessage();
                 LoggerWrapper.logError(message);
@@ -100,7 +88,7 @@ public class MQCore {
         // Transmit Channel
         try {
             tx = connection.createChannel(1);
-            tx.queueDeclare(LibCFG.getInstance().universalName.value(), true, false, false, null);
+            tx.queueDeclare(ViciousLibConfig.get().universalName.value(), true, false, false, null);
             tx.basicQos(1);
         } catch (Exception ex) {
             LoggerWrapper.logError("Could not set TX channels");
@@ -110,7 +98,7 @@ public class MQCore {
         // Receive Channel
         try {
             rx = connection.createChannel(2);
-            rx.queueDeclare(LibCFG.getInstance().universalName.value(), true, false, false, null);
+            rx.queueDeclare(ViciousLibConfig.get().universalName.value(), true, false, false, null);
             rx.basicQos(1);
         } catch (Exception ex) {
             LoggerWrapper.logError("Could not set RX channels");
@@ -183,7 +171,7 @@ public class MQCore {
     // Broadcast a message using the FANOUT exchange type so all other servers get the message as well.
     public void broadcastMQ(byte[] message) {
         try {
-            String queue = LibCFG.getInstance().universalName.value();
+            String queue = ViciousLibConfig.get().universalName.value();
             tx.basicPublish("amq.fanout", queue, null, message);
             //TODO:reimpl:plugin.getComm().debug("Sent MQ " + queue);
         } catch (Exception ex) {

@@ -16,7 +16,10 @@ public abstract class AnnotationProcessor<ANNOTATION extends Annotation, ON> {
         try {
             process(acceptsClass.cast(object), element);
         } catch (Exception e){
-            err(element,"caused an error while processing ",e);
+            //Ignore attempts to apply static processors on members.
+            if(acceptsClass != Class.class) {
+                err(element, "caused an error while processing ", e);
+            }
         }
     }
 

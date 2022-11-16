@@ -11,12 +11,14 @@ repositories {
 
 group = 'vicious'
 
-version = '17-2.3.3'
+version = '17-2.3.5'
 
 dependencies {
     compileOnly 'org.json:json:20220320'
     compileOnly 'org.apache.httpcomponents:httpclient:4.5.13'
+
     compileOnly "commons-io:commons-io:2.11.0"
+    runtimeOnly "commons-io:commons-io:2.11.0"
     compileOnly group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.16.0'
     compileOnly group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.16.0'
     compileOnly "com.rabbitmq:amqp-client:5.14.0"

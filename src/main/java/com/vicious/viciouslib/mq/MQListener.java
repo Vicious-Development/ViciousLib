@@ -1,8 +1,8 @@
 package com.vicious.viciouslib.mq;
 
 import com.rabbitmq.client.*;
-import com.vicious.viciouslib.LibCFG;
 import com.vicious.viciouslib.LoggerWrapper;
+import com.vicious.viciouslib.persistence.ViciousLibConfig;
 
 import java.io.IOException;
 
@@ -19,7 +19,7 @@ public class MQListener {
     // Method starts listener and sets the channel and consumer variables.
     public void listen() {
         try {
-            rx.queueBind(LibCFG.getInstance().universalName.value(), "amq.fanout", "");
+            rx.queueBind(ViciousLibConfig.get().universalName.value(), "amq.fanout", "");
             consumer = new DefaultConsumer(rx) {
                 @Override
                 public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
@@ -31,7 +31,7 @@ public class MQListener {
                     }
                 }
             };
-            rx.basicConsume(LibCFG.getInstance().universalName.value(), true, consumer);
+            rx.basicConsume(ViciousLibConfig.get().universalName.value(), true, consumer);
             LoggerWrapper.logInfo("MQ Listener Consumer Established");
         } catch (Exception ex) {
             LoggerWrapper.logError("MQ Consumer Establishment Failed!" + ex.getMessage());

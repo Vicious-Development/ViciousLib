@@ -1,6 +1,9 @@
 package com.vicious.viciouslib.aunotamation;
 
 import com.vicious.viciouslib.aunotamation.annotation.*;
+import com.vicious.viciouslib.persistence.storage.Persistent;
+import com.vicious.viciouslib.persistence.storage.PersistentAttribute;
+import com.vicious.viciouslib.persistence.storage.aunotamations.Save;
 import com.vicious.viciouslib.util.ClassAnalyzer;
 import com.vicious.viciouslib.util.reflect.ClassManifest;
 import com.vicious.viciouslib.util.reflect.deep.DeepReflection;
@@ -15,6 +18,10 @@ public class Aunotamation {
     private static final Map<Class<?>,ObjectProcessor> objectProcessors = new HashMap<>();
 
     private static Map<Class<?>,List<Runnable>> runOnInit = new HashMap<>();
+
+    static {
+        init();
+    }
 
     public static void init(){
         if(hasProcessor(ModifiedWith.class)){
@@ -84,6 +91,45 @@ public class Aunotamation {
                 }
                 else{
                     err(element, "must be a method or a constructor");
+                }
+            }
+        });
+        registerProcessor(new AnnotationProcessor<>(AnnotatedWith.class,Class.class) {
+            @Override
+            public void process(Class cls, AnnotatedElement element) throws Exception {
+                AnnotatedWith annotatedWith = (AnnotatedWith) cls.getAnnotation(AnnotatedWith.class);
+                for (Class<? extends Annotation> aClass : annotatedWith.value()) {
+                    if(!element.isAnnotationPresent(aClass)){
+                        err(element,"must be annotated with @" + aClass.getCanonicalName());
+                    }
+                }
+            }
+        });
+        registerProcessor(new AnnotationProcessor<>(Save.class, Persistent.class) {
+            @Override
+            public void process(Persistent object, AnnotatedElement element) throws Exception {
+                Save anno = element.getAnnotation(Save.class);
+                if(element instanceof Field f){
+                    PersistentAttribute<?> val = (PersistentAttribute<?>) f.get(object);
+                    if(!object.getMap().containsKey(val.name())) {
+                        if (!anno.description().isEmpty()){
+                            val.describe(anno.description());
+                        }
+                        if (!anno.parent().isEmpty()) {
+                            String parentKey = anno.parent();
+                            ClassManifest<?> manif = ClassAnalyzer.getManifest(object.getClass());
+                            List<AnnotatedElement> elems = manif.getMembersWithAnnotation(Save.class);
+                            for (AnnotatedElement elem : elems) {
+                                if(elem instanceof Field p){
+                                    PersistentAttribute<?> parent = (PersistentAttribute<?>) p.get(object);
+                                    if(parent.name().equals(parentKey)){
+                                        val.setParent(parent);
+                                    }
+                                }
+                            }
+                        }
+                        object.put(val.name(), val);
+                    }
                 }
             }
         });
@@ -208,9 +254,7 @@ public class Aunotamation {
     }
     private static void process(AnnotationProcessor<?,?> proc, Object o, AnnotatedElement element, boolean compileCheck){
         if(compileCheck){
-            if (!proc.getAnnotationClass().isAnnotationPresent(ManuallyCompile.class)) {
-                Aunotamation.validateAnnotation(proc.getAnnotationClass(), element);
-            }
+            Aunotamation.validateAnnotation(proc.getAnnotationClass(), element);
         }
         proc.processObject(o, element);
     }
