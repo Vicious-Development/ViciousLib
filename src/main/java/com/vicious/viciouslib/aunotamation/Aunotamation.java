@@ -1,6 +1,11 @@
 package com.vicious.viciouslib.aunotamation;
 
 import com.vicious.viciouslib.aunotamation.annotation.*;
+import com.vicious.viciouslib.jarloader.ViciousEventBroadcaster;
+import com.vicious.viciouslib.jarloader.event.GlobalInterceptor;
+import com.vicious.viciouslib.jarloader.event.InstanceEventBroadcaster;
+import com.vicious.viciouslib.jarloader.event.LocalInterceptor;
+import com.vicious.viciouslib.jarloader.event.MainEntry;
 import com.vicious.viciouslib.persistence.storage.Persistent;
 import com.vicious.viciouslib.persistence.storage.PersistentAttribute;
 import com.vicious.viciouslib.persistence.storage.aunotamations.Save;
@@ -130,6 +135,33 @@ public class Aunotamation {
                         }
                         object.put(val.name(), val);
                     }
+                }
+            }
+        });
+        Aunotamation.registerProcessor(new AnnotationProcessor<>(GlobalInterceptor.class,Object.class) {
+            @Override
+            public void process(Object object, AnnotatedElement elem) {
+                if (elem instanceof Method m) {
+                    ViciousEventBroadcaster.registerAunotamated(m.getParameterTypes()[0], object, m);
+                } else if (elem instanceof Constructor<?> c) {
+                    ViciousEventBroadcaster.registerAunotamated(c.getParameterTypes()[0], object, c);
+                }
+            }
+        });
+        Aunotamation.registerProcessor(new AnnotationProcessor<>(MainEntry.class,Object.class) {
+            @Override
+            public void process(Object object, AnnotatedElement elem) {
+            }
+        });
+        Aunotamation.registerProcessor(new AnnotationProcessor<>(LocalInterceptor.class, Object.class) {
+            @Override
+            public void process(Object object, AnnotatedElement element) throws Exception {
+                if(element instanceof Method m) {
+                    LocalInterceptor interceptor = element.getAnnotation(LocalInterceptor.class);
+                    ClassManifest<?> manif = ClassAnalyzer.getManifest(element.getClass());
+                    Field f = manif.getField(interceptor.value());
+                    InstanceEventBroadcaster ieb = (InstanceEventBroadcaster) f.get(object);
+                    ieb.register(m.getParameterTypes()[0],object,m);
                 }
             }
         });

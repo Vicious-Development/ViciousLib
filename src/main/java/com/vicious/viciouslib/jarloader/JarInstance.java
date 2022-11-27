@@ -21,6 +21,9 @@ public class JarInstance<T> {
         this.mainClass = mainClass;
         this.file = file;
     }
+    public T getMainInstance(){
+        return mainInstance;
+    }
     public Class<T> getMain(){
         return mainClass;
     }

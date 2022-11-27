@@ -1,7 +1,5 @@
 package com.vicious.viciouslib.jarloader.event.interceptor;
 
-import java.lang.reflect.InvocationTargetException;
-
 public abstract class EventInterceptorInstance {
     protected final Object interceptor;
     protected final Class<?> eventType;
@@ -9,7 +7,7 @@ public abstract class EventInterceptorInstance {
         this.interceptor=interceptor;
         this.eventType=eventType;
     }
-    public abstract Object intercept(Object event) throws InvocationTargetException, IllegalAccessException, InstantiationException;
+    public abstract Object intercept(Object event) throws Exception;
     public Class<?> getEventType(){
         return eventType;
     }

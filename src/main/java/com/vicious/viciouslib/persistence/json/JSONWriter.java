@@ -41,10 +41,11 @@ public class JSONWriter {
                 builder.append("#");
                 for (int i = 0; i < description.length(); i++) {
                     char c = description.charAt(i);
+                    builder.append(c);
                     if (c == '\n') {
                         tab(tabs, builder);
+                        builder.append("#");
                     }
-                    builder.append(c);
                 }
                 builder.append('\n');
             }
@@ -59,8 +60,15 @@ public class JSONWriter {
         else{
             tab(tabs,builder);
             boolean string = value.get() instanceof String;
-            builder.append(name).append(" = ").append(string ? '\"' : "").append(value.get()).append("\n");
-            if(string) builder.append('\"');
+            builder.append(name).append(" = ");
+            if(string){
+                builder.append('\"');
+            }
+            builder.append(value.get());
+            if(string) {
+                builder.append('\"');
+            }
+            builder.append('\n');
         }
         if(value instanceof JSONMapping.Persistent persistent) {
             for (Map.Entry<String, JSONMapping.Persistent> entry : persistent.children) {
