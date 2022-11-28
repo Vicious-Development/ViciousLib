@@ -3,7 +3,7 @@ package com.vicious.viciouslib.jarloader.event;
 import com.vicious.viciouslib.jarloader.ViciousEventBroadcaster;
 
 public class VEvent {
-    private EventPhase phase;
+    private final EventPhase phase;
     private boolean canceled = false;
     public VEvent(boolean hasCompleted){
         if(hasCompleted) phase = EventPhase.AFTER;

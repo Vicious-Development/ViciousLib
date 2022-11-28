@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class VEventReturns<T> extends VEvent {
-    private List<T> returned = new ArrayList<>();
+    private final List<T> returned = new ArrayList<>();
     public VEventReturns(boolean hasCompleted) {
         super(hasCompleted);
     }

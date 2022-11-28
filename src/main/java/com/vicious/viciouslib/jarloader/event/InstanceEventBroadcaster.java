@@ -9,6 +9,7 @@ import com.vicious.viciouslib.jarloader.event.interceptor.ExecutableEventInterce
 import com.vicious.viciouslib.jarloader.event.interceptor.LambdaEventInterceptor;
 
 import java.lang.reflect.Executable;
+import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.function.Consumer;
 
@@ -18,6 +19,10 @@ public interface InstanceEventBroadcaster {
 
     default boolean send(Object object){
         return getMap().send(object);
+    }
+
+    default void register(Method m, Object target){
+        register(m.getParameterTypes()[0],target,m);
     }
 
     default void register(Class<?> eventType, Object target, Executable exec){

@@ -1,5 +1,6 @@
 package com.vicious.viciouslib.jarloader.event;
 
+
 import com.vicious.viciouslib.aunotamation.annotation.ModifiedWith;
 import com.vicious.viciouslib.aunotamation.annotation.Parameters;
 
@@ -10,10 +11,10 @@ import java.lang.annotation.Target;
 import java.lang.reflect.Modifier;
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
+@Target(ElementType.FIELD)
 
 @Parameters(Object.class)
 @ModifiedWith(Modifier.PUBLIC)
-public @interface LocalInterceptor {
+public @interface BroadcastTo {
     String[] value();
 }
