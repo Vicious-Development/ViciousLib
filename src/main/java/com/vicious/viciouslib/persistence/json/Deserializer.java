@@ -15,7 +15,7 @@ public class Deserializer {
     private static final Map<Class<?>, Function<String,?>> reserializers = new HashMap<>();
     static {
         registerReserializer(Integer.class,(str)->Integer.parseInt(intForm(str)));
-        registerReserializer(int.class,(str)->(int)Integer.parseInt(intForm(str)));
+        registerReserializer(int.class,(str)->Integer.parseInt(intForm(str)));
         registerReserializer(Long.class,(str)->Long.parseLong(intForm(str)));
         registerReserializer(long.class,(str)->Long.parseLong(intForm(str)));
         registerReserializer(Short.class,(str)->Short.parseShort(intForm(str)));
@@ -38,7 +38,7 @@ public class Deserializer {
         StringBuilder out = new StringBuilder();
         for (int i = 0; i < str.length(); i++) {
             char c = str.charAt(i);
-            if(Character.isDigit(c)){
+            if(Character.isDigit(c) || c == '-'){
                 out.append(c);
             }
             else{
