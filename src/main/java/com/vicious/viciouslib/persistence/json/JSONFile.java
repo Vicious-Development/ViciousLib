@@ -43,7 +43,7 @@ public class JSONFile extends PersistentObject {
     @Override
     public void load(){
         try {
-            JSONParser parser = new JSONParser(path);
+            JSONMapParser parser = new JSONMapParser(path);
             parser.getMap().forEach((k,v)->{
                 if(getMap().containsKey(k)) {
                     get(k).fromJSON(v);

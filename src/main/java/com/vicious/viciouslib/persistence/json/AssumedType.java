@@ -33,7 +33,6 @@ public class AssumedType {
         return Number.class.isAssignableFrom(type);
     }
 
-    public static class Map extends AssumedType {
-
-    }
+    public static class Map extends AssumedType { }
+    public static class Array extends AssumedType { }
 }
