@@ -17,6 +17,34 @@ public class JSONWriter {
         writer.write(builder.toString());
         writer.close();
     }
+    public void writeArray(int tabs, JSONArray array, StringBuilder builder){
+        for (JSONValue value : array) {
+            writeUnmappedValue(tabs, value, builder);
+        }
+    }
+
+    private void writeUnmappedValue(int tabs, JSONValue value, StringBuilder builder) {
+        if(value.get() instanceof JSONMap m) {
+            tab(tabs,builder);
+            builder.append("{\n");
+            writeMap(tabs+1,m,builder);
+            tab(tabs,builder);
+            builder.append("}\n");
+        }
+        else{
+            tab(tabs,builder);
+            boolean string = value.get() instanceof String;
+            if(string){
+                builder.append('\"');
+            }
+            builder.append(value.get());
+            if(string) {
+                builder.append('\"');
+            }
+            builder.append('\n');
+        }
+    }
+
     protected void writeMap(int tabs, JSONMap map, StringBuilder builder){
         for (Map.Entry<String, JSONMapping> entry : map.entrySet()) {
             JSONMapping value = entry.getValue();
@@ -56,6 +84,13 @@ public class JSONWriter {
             writeMap(tabs+1,m,builder);
             tab(tabs,builder);
             builder.append("}\n");
+        }
+        else if(value.get() instanceof JSONArray a){
+            tab(tabs,builder);
+            builder.append(name).append(" = [\n");
+            writeArray(tabs+1,a,builder);
+            tab(tabs,builder);
+            builder.append("]\n");
         }
         else{
             tab(tabs,builder);

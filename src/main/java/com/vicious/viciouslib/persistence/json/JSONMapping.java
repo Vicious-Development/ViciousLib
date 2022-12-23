@@ -4,78 +4,23 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class JSONMapping{
-    private Object mapping;
-    private final String valueString;
+public class JSONMapping extends JSONValue{
     public JSONMapping(Object mapping, String valueString){
-        this.mapping=mapping;
+        super(mapping);
         this.valueString=valueString;
     }
     public JSONMapping(Object mapping){
-        this.mapping=mapping;
+        super(mapping);
         this.valueString= mapping == null ? "null" : mapping.toString();
-    }
-    public Object get(){
-        return mapping;
-    }
-
-    /**
-     * Requires the class to be of the type provided. This will cause problems if the mapping is of type Double and you try to cast it to Float
-     */
-    @SuppressWarnings("unchecked")
-    public <V> V as(Class<V> cls){
-        if(mapping == null){
-            return null;
-        }
-        return cls.cast(mapping);
-    }
-    @SuppressWarnings("unchecked")
-    public <V> V softAs(Class<V> cls){
-        try{
-            return as(cls);
-        } catch (ClassCastException e){
-            if(mapping instanceof Number && Number.class.isAssignableFrom(cls)){
-                return (V) asN((Class<Number>)cls);
-            }
-            V v = Deserializer.fix(valueString,cls);
-            if(v == null){
-                throw new JSONException("Completely failed to parse a JSON value.");
-            }
-            mapping=v;
-            return v;
-        }
-    }
-    @SuppressWarnings("unchecked")
-    private <V extends Number> V asN(Class<V> cls){
-        Number n = (Number) mapping;
-        if(int.class == cls || Integer.class == cls){
-            return (V)(Integer)n.intValue();
-        }
-        if(double.class == cls || Double.class == cls){
-            return (V)(Double)n.doubleValue();
-        }
-        if(float.class == cls || Float.class == cls){
-            return (V)(Float)n.floatValue();
-        }
-        if(long.class == cls || Long.class == cls){
-            return (V)(Long)n.longValue();
-        }
-        if(short.class == cls || Short.class == cls) {
-            return (V) (Short) n.shortValue();
-        }
-        if(byte.class == cls || Byte.class == cls){
-            return (V)(Byte)n.byteValue();
-        }
-        return (V)n;
     }
 
     @Override
     public String toString() {
-        if(mapping == null){
+        if(value == null){
             return "EmptyJSONMapping";
         }
         else{
-            return "JSONMapping{class = " + mapping.getClass().getName() + ", value = " + mapping + ", serialized form = " + valueString + "}";
+            return "JSONMapping{class = " + value.getClass().getName() + ", value = " + value + ", serialized form = " + valueString + "}";
         }
     }
 

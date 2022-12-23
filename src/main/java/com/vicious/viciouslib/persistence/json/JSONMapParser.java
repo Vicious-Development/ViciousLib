@@ -23,9 +23,10 @@ public class JSONMapParser extends JSONParser{
     private boolean shouldParse(String line) {
         if(line.isEmpty()) return false;
         skipSyntax(line);
-        return line.charAt(i) != '#' && line.charAt(i) != '}';
+        return line.charAt(i) != '#' && line.charAt(i) != '}' && line.charAt(i) != ']';
     }
 
+    //TODO read entire lines.
     protected JSONMapParser(Scanner scan){
         this.scan=scan;
         while (scan.hasNextLine()){

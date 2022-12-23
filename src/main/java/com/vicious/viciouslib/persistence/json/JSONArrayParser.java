@@ -1,11 +1,9 @@
 package com.vicious.viciouslib.persistence.json;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Scanner;
 
 public class JSONArrayParser extends JSONParser{
-    private final List<Object> obs = new ArrayList<>();
+    private final JSONArray obs = new JSONArray();
     private final Scanner scan;
 
     private boolean shouldParse(String line) {
@@ -32,7 +30,7 @@ public class JSONArrayParser extends JSONParser{
         }
     }
 
-    public List<Object> getArray(){
+    public JSONArray getArray(){
         return obs;
     }
 
@@ -45,14 +43,14 @@ public class JSONArrayParser extends JSONParser{
         }
         if(value instanceof AssumedType.Map){
             JSONMapParser inner = new JSONMapParser(scan);
-            obs.add(new JSONMapping(inner.getMap(),"[...]"));
+            obs.add(new JSONValue(inner.getMap(),"[...]"));
         }
         else if(value instanceof AssumedType.Array){
             JSONArrayParser inner = new JSONArrayParser(scan);
-            obs.add(new JSONMapping(inner.getArray(),"[...]"));
+            obs.add(new JSONValue(inner.getArray(),"[...]"));
         }
         else {
-            obs.add(new JSONMapping(Deserializer.fix(parsed, value.type), parsed));
+            obs.add(new JSONValue(Deserializer.fix(parsed, value.type), parsed));
         }
     }
 }

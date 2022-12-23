@@ -33,6 +33,10 @@ public class AssumedType {
         return Number.class.isAssignableFrom(type);
     }
 
+    public boolean isEmpty() {
+        return string.isEmpty();
+    }
+
     public static class Map extends AssumedType { }
     public static class Array extends AssumedType { }
 }
