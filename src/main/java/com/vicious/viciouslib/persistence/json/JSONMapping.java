@@ -11,7 +11,7 @@ public class JSONMapping extends JSONValue{
     }
     public JSONMapping(Object mapping){
         super(mapping);
-        this.valueString= mapping == null ? "null" : mapping.toString();
+        this.valueString = mapping == null ? "null" : mapping.toString();
     }
 
     @Override

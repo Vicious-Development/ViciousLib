@@ -1,9 +1,11 @@
 package com.vicious.viciouslib.persistence.json;
 
-import com.vicious.viciouslib.persistence.storage.PersistentObject;
 import com.vicious.viciouslib.persistence.storage.PersistentAttribute;
+import com.vicious.viciouslib.persistence.storage.PersistentObject;
 
 import java.io.FileNotFoundException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Map;
 
 public class JSONFile extends PersistentObject {
@@ -38,6 +40,12 @@ public class JSONFile extends PersistentObject {
         } catch (Exception e){
             throw new RuntimeException(e);
         }
+    }
+
+    public void delete(){
+        try {
+            Files.delete(Paths.get(path));
+        } catch (Exception ignored) {}
     }
 
     @Override

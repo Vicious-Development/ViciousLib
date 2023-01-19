@@ -3,7 +3,7 @@ package com.vicious.viciouslib.persistence.json;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.*;
+import java.util.Map;
 
 public class JSONWriter {
     private File file;

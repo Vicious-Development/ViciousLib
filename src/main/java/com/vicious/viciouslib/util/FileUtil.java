@@ -20,7 +20,7 @@ public class FileUtil {
         Path p = toPath(path);
         if(!Files.isDirectory(p)){
             try {
-                Files.createDirectory(p);
+                Files.createDirectories(p);
             } catch(IOException e){
                 e.printStackTrace();
             }

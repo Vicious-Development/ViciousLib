@@ -39,7 +39,7 @@ public abstract class CommandHandler<USERTYPE, CHANNELTYPE> {
         cmd.getExecutor().execute(cmd.execute(line, channel), user);
     }
     public String getRestrictedDescription(Command<USERTYPE,CHANNELTYPE> cmd, USERTYPE user) {
-        if(cmd.minimumRole == null || isAuthorized(cmd,user)) {
+        if(cmd.permission == null || isAuthorized(cmd,user)) {
             AtomicReference<String> childdescs = new AtomicReference<>("");
             int i = 0;
             cmd.children.forEach((str,child)->{

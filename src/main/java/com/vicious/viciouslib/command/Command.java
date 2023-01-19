@@ -8,15 +8,16 @@ public class Command<USERTYPE,CHANNELTYPE> {
     public final String description;
     public boolean isPrivateMessage;
     public boolean isPublicMessage;
-    public String minimumRole;
+
+    public String permission;
     private final List<String> identifiers;
     public final Map<String,Command<USERTYPE,CHANNELTYPE>> children = new HashMap<>();
     private CommandExecutor<USERTYPE,CHANNELTYPE> executor;
     private final Argument[] args;
     private Command<USERTYPE,CHANNELTYPE> parent;
     public CommandHandler<USERTYPE,CHANNELTYPE> handler;
-    private Command(List<String> identifiers, String role, boolean pub, boolean priv, List<Command<USERTYPE,CHANNELTYPE>> children, CommandExecutor<USERTYPE,CHANNELTYPE> executor, Argument[] args, String description){
-        minimumRole = role;
+    private Command(List<String> identifiers, String permission, boolean pub, boolean priv, List<Command<USERTYPE,CHANNELTYPE>> children, CommandExecutor<USERTYPE,CHANNELTYPE> executor, Argument[] args, String description){
+        permission = permission;
         isPrivateMessage=priv;
         isPublicMessage=pub;
         for (int i = 0; i < identifiers.size(); i++) {
@@ -211,7 +212,7 @@ public class Command<USERTYPE,CHANNELTYPE> {
     public static class CommandBuilder<USERTYPE, CHANNELTYPE>{
         private boolean isPrivate=false;
         private boolean isPublic=false;
-        private String minimumRequiredRole = null;
+        private String permission = null;
         private final List<String> identifiers = new ArrayList<>();
         private final List<Command<USERTYPE,CHANNELTYPE>> children = new ArrayList<>();
         private Argument[] args = new Argument[0];
@@ -221,8 +222,8 @@ public class Command<USERTYPE,CHANNELTYPE> {
         public CommandBuilder(){
 
         }
-        public CommandBuilder<USERTYPE,CHANNELTYPE> role(String minimumrole){
-            minimumRequiredRole = minimumrole;
+        public CommandBuilder<USERTYPE,CHANNELTYPE> permission(String permission){
+            this.permission = permission;
             return this;
         }
         public CommandBuilder<USERTYPE,CHANNELTYPE> isPrivateMessageAccessible(boolean bool){
@@ -255,7 +256,7 @@ public class Command<USERTYPE,CHANNELTYPE> {
             return this;
         }
         public Command<USERTYPE,CHANNELTYPE> build(){
-            return new Command<USERTYPE,CHANNELTYPE>(identifiers,minimumRequiredRole,isPublic,isPrivate,children,executor,args,description);
+            return new Command<USERTYPE,CHANNELTYPE>(identifiers, permission,isPublic,isPrivate,children,executor,args,description);
         }
     }
 }

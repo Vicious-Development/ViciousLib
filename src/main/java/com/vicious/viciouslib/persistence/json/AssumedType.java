@@ -9,7 +9,10 @@ public class AssumedType {
         return this;
     }
     private void updateType(char c) {
-        if(type != String.class) {
+        if(c == '"'){
+            type = String.class;
+        }
+        else if(type != String.class) {
             if(isNumber()){
                 if(c == '.') {
                     type = Double.class;

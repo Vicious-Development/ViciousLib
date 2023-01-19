@@ -41,8 +41,8 @@ public class PersistentAttribute<T> {
 
     public T set(T t){
         T pre = value;
-        if(!pre.equals(t)){
-            value=t;
+        value=t;
+        if(value != null && !value.equals(pre)) {
             setDirty(true);
         }
         return pre;

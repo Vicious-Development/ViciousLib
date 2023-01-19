@@ -55,7 +55,12 @@ public class JSONMapParser extends JSONParser{
         AssumedType value = parseValue(line);
         String parsed = value.string;
         if(parsed.startsWith("\"") && parsed.endsWith("\"")){
-            parsed = parsed.substring(1,parsed.length()-1);
+            if(parsed.length() == 2){
+                parsed = "";
+            }
+            else {
+                parsed = parsed.substring(1, parsed.length() - 1);
+            }
         }
         if(value instanceof AssumedType.Map){
             JSONMapParser inner = new JSONMapParser(scan);
