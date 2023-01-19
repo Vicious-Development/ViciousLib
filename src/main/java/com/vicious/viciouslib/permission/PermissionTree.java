@@ -18,6 +18,9 @@ public class PermissionTree {
     }
 
     public boolean hasPermission(List<String> path, PermissionNode node){
+        if(hasAll) {
+            return true;
+        }
         if(node == null){
             return false;
         }
