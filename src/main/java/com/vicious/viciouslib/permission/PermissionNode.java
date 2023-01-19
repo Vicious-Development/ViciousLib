@@ -7,7 +7,6 @@ import java.util.List;
 public class PermissionNode extends HashMap<String,PermissionNode>{
     private PermissionNode parent;
     private final String name;
-
     public PermissionNode(String name) {
         this.name = name;
     }

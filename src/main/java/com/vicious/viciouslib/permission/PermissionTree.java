@@ -4,7 +4,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class PermissionTree {
-    private PermissionNode root = new PermissionNode("root");
+    private boolean hasAll = false;
+    private final PermissionNode root = new PermissionNode("root");
     public boolean hasPermission(String permission){
         return hasPermission(toPathList(permission));
     }
@@ -33,6 +34,10 @@ public class PermissionTree {
     }
 
     public void addPermission(String path){
+        if(path.equals("*")){
+            grantAll();
+            return;
+        }
         List<String> lst = toPathList(path);
         PermissionNode prev;
         PermissionNode node = root;
@@ -47,6 +52,10 @@ public class PermissionTree {
         }
     }
     public boolean removePermission(String path){
+        if(path.equals("*")){
+            revokeAll();
+            return true;
+        }
         List<String> lst = toPathList(path);
         PermissionNode node = root;
         while(!lst.isEmpty()){
@@ -77,5 +86,16 @@ public class PermissionTree {
             }
         }
         return permissions;
+    }
+
+    public void grantAll(){
+        hasAll=true;
+    }
+    public boolean hasAll(){
+        return hasAll;
+    }
+
+    public void revokeAll(){
+        hasAll=false;
     }
 }
