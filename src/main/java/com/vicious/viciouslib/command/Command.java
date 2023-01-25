@@ -17,7 +17,6 @@ public class Command<USERTYPE,CHANNELTYPE> {
     private Command<USERTYPE,CHANNELTYPE> parent;
     public CommandHandler<USERTYPE,CHANNELTYPE> handler;
     private Command(List<String> identifiers, String permission, boolean pub, boolean priv, List<Command<USERTYPE,CHANNELTYPE>> children, CommandExecutor<USERTYPE,CHANNELTYPE> executor, Argument[] args, String description){
-        permission = permission;
         isPrivateMessage=priv;
         isPublicMessage=pub;
         for (int i = 0; i < identifiers.size(); i++) {
@@ -38,6 +37,7 @@ public class Command<USERTYPE,CHANNELTYPE> {
         for(Command<USERTYPE,CHANNELTYPE> c : children){
             c.parent = this;
         }
+        this.permission=permission;
     }
     public String getFullIdentifier(){
         if(this.parent == null) return identifiers.get(0);

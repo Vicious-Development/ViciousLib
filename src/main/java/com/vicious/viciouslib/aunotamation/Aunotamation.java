@@ -139,7 +139,12 @@ public class Aunotamation {
             @Override
             public void process(Object object, AnnotatedElement elem) {
                 if (elem instanceof Method m) {
-                    ViciousEventBroadcaster.registerAunotamated(m.getParameterTypes()[0], object, m);
+                    if(Modifier.isStatic(m.getModifiers()) && object instanceof Class<?>) {
+                        ViciousEventBroadcaster.registerAunotamated(m.getParameterTypes()[0], object, m);
+                    }
+                    else if(!Modifier.isStatic(m.getModifiers()) && !(object instanceof Class<?>)){
+                        ViciousEventBroadcaster.registerAunotamated(m.getParameterTypes()[0], object, m);
+                    }
                 } else if (elem instanceof Constructor<?> c) {
                     ViciousEventBroadcaster.registerAunotamated(c.getParameterTypes()[0], object, c);
                 }

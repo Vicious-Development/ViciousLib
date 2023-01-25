@@ -17,6 +17,10 @@ public class PermissionTree {
         return hasPermission(path,root.get(path.remove(0)));
     }
 
+    public void clear(){
+        root.clear();
+    }
+
     public boolean hasPermission(List<String> path, PermissionNode node){
         if(hasAll) {
             return true;
