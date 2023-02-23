@@ -3,16 +3,16 @@ package com.vicious.viciouslib.network;
 import com.vicious.viciouslib.network.annotation.Directionality;
 import com.vicious.viciouslib.network.annotation.Permission;
 
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
 public class PacketChannel<T extends IPacket> {
     private final Class<T> packetClass;
     private final Supplier<T> constructor;
-    private final Consumer<T> processor;
+    private final BiConsumer<T,IConnection> processor;
     private int identifier = 0;
 
-    public PacketChannel(Class<T> packetClass, Supplier<T> constructor, Consumer<T> processor, int id){
+    public PacketChannel(Class<T> packetClass, Supplier<T> constructor, BiConsumer<T,IConnection> processor, int id){
         this.packetClass=packetClass;
         this.constructor = constructor;
         this.identifier=id;
@@ -60,8 +60,8 @@ public class PacketChannel<T extends IPacket> {
         return false;
     }
 
-    public void process(T packet) {
-        processor.accept(packet);
+    public void process(T packet, IConnection connection) {
+        processor.accept(packet, connection);
     }
 
     public boolean hasPermission(IConnection iConnection) {

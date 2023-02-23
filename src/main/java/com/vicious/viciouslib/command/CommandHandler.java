@@ -12,7 +12,7 @@ public abstract class CommandHandler<USERTYPE, CHANNELTYPE> {
     public abstract boolean canBeCommand(String line);
 
     public static final String INVALIDCOMMANDMSG = "Invalid command!";
-    private Map<String,Command<USERTYPE,CHANNELTYPE>> commands = new HashMap<>();
+    protected Map<String,Command<USERTYPE,CHANNELTYPE>> commands = new HashMap<>();
     public final InputQueue<USERTYPE,CHANNELTYPE> queuedInputs = new InputQueue<>();
     public void register(Command<USERTYPE,CHANNELTYPE> cmd){
         for (String identifier : cmd.getIdentifiers()) {
@@ -90,5 +90,7 @@ public abstract class CommandHandler<USERTYPE, CHANNELTYPE> {
     public void queueInputExecutor(CHANNELTYPE channel, USERTYPE u, int i, Consumer<String> executor) {
         queuedInputs.queue(new QueuedInput(channel,u,i,executor));
     }
-
+    public Map<String,Command<USERTYPE,CHANNELTYPE>> getCommands(){
+        return commands;
+    }
 }

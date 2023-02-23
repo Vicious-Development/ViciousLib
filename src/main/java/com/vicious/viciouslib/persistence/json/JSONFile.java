@@ -56,6 +56,9 @@ public class JSONFile extends PersistentObject {
                 if(getMap().containsKey(k)) {
                     get(k).fromJSON(v);
                 }
+                else{
+                    getMap().put(k,new PersistentAttribute<>(k,String.class,v.softAs(String.class)));
+                }
             });
         } catch (FileNotFoundException ignored){}
     }

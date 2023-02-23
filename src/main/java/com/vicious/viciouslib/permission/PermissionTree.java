@@ -76,6 +76,9 @@ public class PermissionTree {
     }
 
     public List<String> toPathList(String permission){
+        if(permission == null || permission.isEmpty()){
+            return List.of();
+        }
         List<String> permissions = new LinkedList<>();
         StringBuilder val = new StringBuilder();
         for (int i = 0; i < permission.length(); i++) {

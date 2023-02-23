@@ -7,7 +7,7 @@ import com.vicious.viciouslib.util.ClassMap;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
 public class PacketLexicon {
@@ -16,13 +16,13 @@ public class PacketLexicon {
     private Side side = Side.SERVER;
 
     //Ensure that PacketSynchronize always registers first.
-    public PacketLexicon(Consumer<PacketSynchronize> synchronizationProcessor){
+    public PacketLexicon(BiConsumer<PacketSynchronize,IConnection> synchronizationProcessor){
         registerHandler(PacketSynchronize.class, PacketSynchronize::new,synchronizationProcessor);
     }
 
 
 
-    public <T extends IPacket> void registerHandler(Class<T> packet, Supplier<T> constructor, Consumer<T> processor){
+    public <T extends IPacket> void registerHandler(Class<T> packet, Supplier<T> constructor, BiConsumer<T,IConnection> processor){
         PacketChannel<T> channel = new PacketChannel<>(packet, constructor, processor, idChannels.size());
         channels.put(packet,channel);
         idChannels.put(channel.getId(),channel);
@@ -34,6 +34,25 @@ public class PacketLexicon {
             classMap.put(p.getId(),p.getName(connection));
         });
         connection.send(new PacketSynchronize(classMap));
+    }
+
+    public void processSynchronizationPacket(PacketSynchronize packet){
+        idChannels.clear();
+        packet.getClassMap().forEach((k,v)->{
+            try {
+                Class<?> cls = Class.forName(v);
+                PacketChannel<?> channel = channels.get(cls);
+                if(channel != null){
+                    channel.setIdentifier(k);
+                    idChannels.put(k,channel);
+                }
+            } catch (ClassNotFoundException ignored) {}
+        });
+    }
+
+    public void clear(){
+        channels.clear();
+        idChannels.clear();
     }
 
     public int identifierOf(IPacket packet) {

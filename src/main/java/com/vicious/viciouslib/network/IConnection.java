@@ -9,13 +9,12 @@ public interface IConnection {
     boolean isClosed();
     DataInputStream dis();
     DataOutputStream dos();
-
     PacketLexicon getLexicon();
 
     default <T extends IPacket> void receive(PacketChannel<T> channel) throws IOException{
         T packet = channel.createBase();
         packet.read(dis());
-        channel.process(packet);
+        channel.process(packet,this);
     }
 
     default void send(IPacket packet) throws IOException {
@@ -38,8 +37,13 @@ public interface IConnection {
             if(dis().available() > 0){
                 int id = dis().readInt();
                 PacketChannel<?> channel = getLexicon().getChannel(id);
-                if(shouldProcess(channel)) {
-                    receive(channel);
+                if(channel != null) {
+                    if (shouldProcess(channel)) {
+                        receive(channel);
+                    }
+                    else{
+
+                    }
                 }
             }
         }

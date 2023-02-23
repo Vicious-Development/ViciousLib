@@ -4,6 +4,7 @@ package com.vicious.viciouslib.network.packet;
 import com.vicious.viciouslib.network.IPacket;
 import com.vicious.viciouslib.network.Side;
 import com.vicious.viciouslib.network.annotation.Directionality;
+import com.vicious.viciouslib.network.annotation.Permission;
 import com.vicious.viciouslib.util.BiMap;
 
 import java.io.DataInputStream;
@@ -11,6 +12,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 @Directionality(Side.CLIENT)
+@Permission("viciouslib.allowsync")
 public class PacketSynchronize implements IPacket {
     private final BiMap<Integer, String> classMap;
 
