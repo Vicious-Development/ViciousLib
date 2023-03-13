@@ -3,8 +3,10 @@ package com.vicious.viciouslib.aunotamation;
 import com.vicious.viciouslib.aunotamation.annotation.*;
 import com.vicious.viciouslib.jarloader.ViciousEventBroadcaster;
 import com.vicious.viciouslib.jarloader.event.*;
-import com.vicious.viciouslib.persistence.storage.Persistent;
-import com.vicious.viciouslib.persistence.storage.PersistentAttribute;
+import com.vicious.viciouslib.persistence.PersistenceHandler;
+import com.vicious.viciouslib.persistence.storage.aunotamations.DontAutoLoad;
+import com.vicious.viciouslib.persistence.storage.aunotamations.OnChanged;
+import com.vicious.viciouslib.persistence.storage.aunotamations.PersistentPath;
 import com.vicious.viciouslib.persistence.storage.aunotamations.Save;
 import com.vicious.viciouslib.util.ClassAnalyzer;
 import com.vicious.viciouslib.util.reflect.ClassManifest;
@@ -107,31 +109,15 @@ public class Aunotamation {
                 }
             }
         });
-        registerProcessor(new AnnotationProcessor<>(Save.class, Persistent.class) {
+        registerProcessor(new AnnotationProcessor<>(Save.class, Object.class) {
             @Override
-            public void process(Persistent object, AnnotatedElement element) throws Exception {
-                Save anno = element.getAnnotation(Save.class);
-                if(element instanceof Field f){
-                    PersistentAttribute<?> val = (PersistentAttribute<?>) f.get(object);
-                    if(!object.getMap().containsKey(val.name())) {
-                        if (!anno.description().isEmpty()){
-                            val.describe(anno.description());
-                        }
-                        if (!anno.parent().isEmpty()) {
-                            String parentKey = anno.parent();
-                            ClassManifest<?> manif = ClassAnalyzer.getManifest(object.getClass());
-                            List<AnnotatedElement> elems = manif.getMembersWithAnnotation(Save.class);
-                            for (AnnotatedElement elem : elems) {
-                                if(elem instanceof Field p){
-                                    PersistentAttribute<?> parent = (PersistentAttribute<?>) p.get(object);
-                                    if(parent.name().equals(parentKey)){
-                                        val.setParent(parent);
-                                    }
-                                }
-                            }
-                        }
-                        object.put(val.name(), val);
-                    }
+            public void process(Object object, AnnotatedElement element) throws Exception {}
+        });
+        registerProcessor(new AnnotationProcessor<>(PersistentPath.class, Object.class) {
+            @Override
+            public void process(Object object, AnnotatedElement element) throws Exception {
+                if(!object.getClass().isAnnotationPresent(DontAutoLoad.class)) {
+                    PersistenceHandler.init(object);
                 }
             }
         });
@@ -182,6 +168,11 @@ public class Aunotamation {
                         }
                     }
                 }
+            }
+        });
+        Aunotamation.registerProcessor(new AnnotationProcessor<>(OnChanged.class, Object.class) {
+            @Override
+            public void process(Object object, AnnotatedElement element) throws Exception {
             }
         });
     }

@@ -1,5 +1,7 @@
 package com.vicious.viciouslib.persistence.json;
 
+import com.vicious.viciouslib.persistence.json.value.JSONMapping;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 

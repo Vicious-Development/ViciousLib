@@ -1,4 +1,4 @@
-package com.vicious.viciouslib.persistence.json;
+package com.vicious.viciouslib.persistence.json.value;
 
 public class JSONException extends RuntimeException {
     public JSONException() {

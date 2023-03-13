@@ -12,23 +12,23 @@ import java.util.function.Function;
  * Typing a decimal when it is unnecessary (assuming the backend requires an int rather than a decimal): 123.0
  */
 public class Deserializer {
-    private static final Map<Class<?>, Function<String,?>> reserializers = new HashMap<>();
+    private static final Map<Class<?>, Function<String,?>> deserializers = new HashMap<>();
     static {
-        registerReserializer(Integer.class,(str)->Integer.parseInt(intForm(str)));
-        registerReserializer(int.class,(str)->Integer.parseInt(intForm(str)));
-        registerReserializer(Long.class,(str)->Long.parseLong(intForm(str)));
-        registerReserializer(long.class,(str)->Long.parseLong(intForm(str)));
-        registerReserializer(Short.class,(str)->Short.parseShort(intForm(str)));
-        registerReserializer(short.class,(str)->Short.parseShort(intForm(str)));
-        registerReserializer(Byte.class,(str)->Byte.parseByte(intForm(str)));
-        registerReserializer(byte.class,(str)->Byte.parseByte(intForm(str)));
-        registerReserializer(Double.class,(str)->Double.parseDouble(decimalForm(str)));
-        registerReserializer(double.class,(str)->Double.parseDouble(decimalForm(str)));
-        registerReserializer(Float.class,(str)->Float.parseFloat(decimalForm(str)));
-        registerReserializer(float.class,(str)->Float.parseFloat(decimalForm(str)));
-        registerReserializer(Boolean.class, Deserializer::booleanForm);
-        registerReserializer(boolean.class, Deserializer::booleanForm);
-        registerReserializer(String.class,(str)->str);
+        registerDeserializer(Integer.class,(str)->Integer.parseInt(intForm(str)));
+        registerDeserializer(int.class,(str)->Integer.parseInt(intForm(str)));
+        registerDeserializer(Long.class,(str)->Long.parseLong(intForm(str)));
+        registerDeserializer(long.class,(str)->Long.parseLong(intForm(str)));
+        registerDeserializer(Short.class,(str)->Short.parseShort(intForm(str)));
+        registerDeserializer(short.class,(str)->Short.parseShort(intForm(str)));
+        registerDeserializer(Byte.class,(str)->Byte.parseByte(intForm(str)));
+        registerDeserializer(byte.class,(str)->Byte.parseByte(intForm(str)));
+        registerDeserializer(Double.class,(str)->Double.parseDouble(decimalForm(str)));
+        registerDeserializer(double.class,(str)->Double.parseDouble(decimalForm(str)));
+        registerDeserializer(Float.class,(str)->Float.parseFloat(decimalForm(str)));
+        registerDeserializer(float.class,(str)->Float.parseFloat(decimalForm(str)));
+        registerDeserializer(Boolean.class, Deserializer::booleanForm);
+        registerDeserializer(boolean.class, Deserializer::booleanForm);
+        registerDeserializer(String.class,(str)->str);
     }
     private static boolean booleanForm(String str) {
         return str.contains("t") || str.contains("T");
@@ -64,9 +64,9 @@ public class Deserializer {
     }
 
     public static <V> V fix(String str, Class<V> cls){
-        if(reserializers.containsKey(cls)) {
+        if(deserializers.containsKey(cls)) {
             try {
-                return (V)reserializers.get(cls).apply(str);
+                return (V) deserializers.get(cls).apply(str);
             } catch (Exception e){
                 e.printStackTrace();
             }
@@ -74,7 +74,7 @@ public class Deserializer {
         return null;
     }
 
-    public static <V> void registerReserializer(Class<V> cls, Function<String,V> func){
-        reserializers.put(cls,func);
+    public static <V> void registerDeserializer(Class<V> cls, Function<String,V> func){
+        deserializers.put(cls,func);
     }
 }

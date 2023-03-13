@@ -1,18 +1,23 @@
-package com.vicious.viciouslib.persistence.json;
+package com.vicious.viciouslib.persistence.json.parser;
 
 public class AssumedType {
+    private boolean isLocked = false;
     public String string = "";
     public Class<?> type = Object.class;
     public AssumedType append(char c){
-        string+=c;
+
         updateType(c);
+        if(c != '"') {
+            string += c;
+        }
         return this;
     }
     private void updateType(char c) {
         if(c == '"'){
             type = String.class;
+            isLocked = true;
         }
-        else if(type != String.class) {
+        else if(!isLocked) {
             if(isNumber()){
                 if(c == '.') {
                     type = Double.class;

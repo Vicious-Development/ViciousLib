@@ -11,8 +11,5 @@ import java.lang.reflect.Modifier;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 @ModifiedWith(Modifier.PUBLIC)
-public @interface Save {
-    String value() default "";
-    String description() default "";
-    String parent() default "";
+public @interface PersistentPath {
 }

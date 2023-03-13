@@ -1,8 +1,17 @@
-package com.vicious.viciouslib.persistence.json;
+package com.vicious.viciouslib.persistence.json.value;
+
+import com.vicious.viciouslib.persistence.json.Deserializer;
+import com.vicious.viciouslib.persistence.json.writer.NamePair;
+import com.vicious.viciouslib.persistence.storage.AttrInfo;
+
+import java.util.List;
 
 public class JSONValue {
     protected Object value;
     protected String valueString;
+
+    public AttrInfo info = AttrInfo.EMPTY;
+    public List<NamePair> children;
 
     public JSONValue(Object o) {
         this.value=o;
@@ -14,6 +23,10 @@ public class JSONValue {
 
     public Object get(){
         return value;
+    }
+
+    public boolean hasChildren(){
+        return children != null && !children.isEmpty();
     }
 
     /**

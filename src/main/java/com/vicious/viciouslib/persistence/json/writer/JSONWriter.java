@@ -1,4 +1,9 @@
-package com.vicious.viciouslib.persistence.json;
+package com.vicious.viciouslib.persistence.json.writer;
+
+import com.vicious.viciouslib.persistence.json.JSONArray;
+import com.vicious.viciouslib.persistence.json.JSONMap;
+import com.vicious.viciouslib.persistence.json.value.JSONMapping;
+import com.vicious.viciouslib.persistence.json.value.JSONValue;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -31,6 +36,13 @@ public class JSONWriter {
             tab(tabs,builder);
             builder.append("}\n");
         }
+        else if(value.get() instanceof JSONArray a){
+            tab(tabs,builder);
+            builder.append("[\n");
+            writeArray(tabs+1,a,builder);
+            tab(tabs,builder);
+            builder.append("]\n");
+        }
         else{
             tab(tabs,builder);
             boolean string = value.get() instanceof String;
@@ -49,8 +61,8 @@ public class JSONWriter {
         for (Map.Entry<String, JSONMapping> entry : map.entrySet()) {
             JSONMapping value = entry.getValue();
             String name = entry.getKey();
-            if(value instanceof JSONMapping.Persistent p) {
-                if(!p.hasParent()) {
+            if(value.info != null) {
+                if(!value.info.hasParent()) {
                     writeValue(tabs, name, value, builder);
                 }
             }
@@ -60,9 +72,9 @@ public class JSONWriter {
         }
     }
 
-    protected void writeValue(int tabs, String name, JSONMapping value, StringBuilder builder) {
-        if(value instanceof JSONMapping.Persistent persistent) {
-            String description = persistent.description;
+    protected void writeValue(int tabs, String name, JSONValue value, StringBuilder builder) {
+        if(value.info.hasDescription()) {
+            String description = value.info.description();
             if (description != null && !description.isEmpty()) {
                 //Doing this manually to reduce runtime.
                 tab(tabs, builder);
@@ -105,9 +117,9 @@ public class JSONWriter {
             }
             builder.append('\n');
         }
-        if(value instanceof JSONMapping.Persistent persistent) {
-            for (Map.Entry<String, JSONMapping.Persistent> entry : persistent.children) {
-                writeValue(tabs + 1, entry.getKey(), entry.getValue(), builder);
+        if(value.hasChildren()) {
+            for (NamePair entry : value.children) {
+                writeValue(tabs + 1, entry.getName(), entry.getValue(), builder);
             }
         }
     }
