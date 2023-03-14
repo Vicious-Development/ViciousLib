@@ -13,32 +13,56 @@ import com.vicious.viciouslib.persistence.storage.aunotamations.PersistentPath;
 import com.vicious.viciouslib.persistence.storage.aunotamations.Save;
 import com.vicious.viciouslib.util.ClassAnalyzer;
 import com.vicious.viciouslib.util.reflect.ClassManifest;
+import com.vicious.viciouslib.util.reflect.deep.DeepReflection;
 
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class PersistenceHandler {
     public static void load(Object o){
         boolean isStatic = o instanceof Class<?>;
         Class<?> cls = isStatic ? (Class<?>) o : o.getClass();
-        ClassManifest<?> manifest = ClassAnalyzer.analyzeClass(cls);
+        JSONMap map = loadJSON(getPath(o));
+        if(map == null || map.isEmpty()){
+            return;
+        }
+        Throwable failure = DeepReflection.cycleAndExecute(cls,c->{
+            ClassManifest<?> manifest = ClassAnalyzer.analyzeClass(c);
+            try {
+                load(manifest, map, o, isStatic);
+            } catch (Throwable e){
+                return e;
+            }
+            return null;
+        });
+        if(failure != null){
+            throw new RuntimeException("Failed to load a JSON object.",failure);
+        }
+    }
+
+    public static boolean isValid(Member m, boolean isStatic){
+        if(!isStatic && Modifier.isStatic(m.getModifiers())){
+            return false;
+        }
+        if(isStatic && !Modifier.isStatic(m.getModifiers())){
+            return false;
+        }
+        return true;
+    }
+
+    private static void load(ClassManifest<?> manifest, JSONMap map, Object o, boolean isStatic) {
         List<AnnotatedElement> members = manifest.getMembersWithAnnotation(Save.class);
         List<AnnotatedElement> listeners = manifest.getMembersWithAnnotation(OnChanged.class);
         try {
-            JSONMap map = loadJSON(getPath(o));
-            if(map == null || map.isEmpty()){
-                return;
-            }
             for (AnnotatedElement member : members) {
                 if(member instanceof Field f) {
-                    if(!isStatic && Modifier.isStatic(f.getModifiers())){
-                        continue;
-                    }
-                    if(isStatic && !Modifier.isStatic(f.getModifiers())){
+                    if(!isValid(f,isStatic)){
                         continue;
                     }
                     Save save = member.getAnnotation(Save.class);
@@ -83,7 +107,29 @@ public class PersistenceHandler {
     private static String getPath(Object o){
         boolean isStatic = o instanceof Class<?>;
         Class<?> cls = isStatic ? (Class<?>) o : o.getClass();
-        ClassManifest<?> manifest = ClassAnalyzer.analyzeClass(cls);
+        AtomicReference<RuntimeException> thrown = new AtomicReference<>();
+        String path = DeepReflection.cycleAndExecute(cls,c->{
+            ClassManifest<?> manifest = ClassAnalyzer.analyzeClass(c);
+            try {
+                return getPath(manifest, o, isStatic);
+            } catch (RuntimeException e){
+                if(thrown.get() == null){
+                    thrown.set(e);
+                }
+                return null;
+            }
+        });
+        if(path == null){
+            throw thrown.get();
+        }
+        else{
+            return path;
+        }
+    }
+
+
+
+    public static String getPath(ClassManifest<?> manifest, Object o, boolean isStatic){
         List<AnnotatedElement> persistentPath = manifest.getMembersWithAnnotation(PersistentPath.class);
         List<Field> valid = new ArrayList<>();
         for (AnnotatedElement annotatedElement : persistentPath) {
@@ -114,23 +160,55 @@ public class PersistenceHandler {
         return "";
     }
 
+    public static boolean isLoadOnly(Class<?> cls){
+        Boolean out = DeepReflection.cycleAndExecute(cls,c->{
+            if(c.isAnnotationPresent(LoadOnly.class)){
+                return true;
+            }
+            else{
+                return null;
+            }
+        });
+        if(out == null){
+            return false;
+        }
+        return out;
+    }
+
     public static void save(Object o){
         boolean isStatic = o instanceof Class<?>;
         Class<?> cls = isStatic ? (Class<?>) o : o.getClass();
-        ClassManifest<?> manifest = ClassAnalyzer.analyzeClass(cls);
         String path = getPath(o);
         //Don't load already present objects if the file is load only.
-        if(o.getClass().isAnnotationPresent(LoadOnly.class) && new File(path).exists()){
+        if(isLoadOnly(cls) && new File(path).exists()){
             return;
         }
-        List<AnnotatedElement> members = manifest.getMembersWithAnnotation(Save.class);
         JSONMap out = new JSONMap();
+        Throwable failure = DeepReflection.cycleAndExecute(cls,c->{
+            ClassManifest<?> manifest = ClassAnalyzer.analyzeClass(c);
+            try {
+                save(manifest, out, o, isStatic);
+            } catch (Throwable e){
+                return e;
+            }
+            return null;
+        });
+        if(failure != null){
+            throw new RuntimeException("Failed to save a JSON object.",failure);
+        }
+        try {
+            saveJSON(path, out);
+        } catch (FileNotFoundException ignored){}
+        catch (IOException e){
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void save(ClassManifest<?> manifest, JSONMap out, Object o, boolean isStatic) {
+        List<AnnotatedElement> members = manifest.getMembersWithAnnotation(Save.class);
         for (AnnotatedElement member : members) {
             if(member instanceof Field f){
-                if(!isStatic && Modifier.isStatic(f.getModifiers())){
-                    continue;
-                }
-                if(isStatic && !Modifier.isStatic(f.getModifiers())){
+                if(!isValid(f,isStatic)){
                     continue;
                 }
                 Save save = member.getAnnotation(Save.class);
@@ -143,15 +221,10 @@ public class PersistenceHandler {
                 } catch (IllegalAccessException ignored) {}
             }
         }
-        saveJSON(path,out);
     }
 
-    public static void saveJSON(String path, JSONMap out){
-        try {
-            new JSONWriter(path).write(out);
-        } catch (Exception e){
-            throw new RuntimeException(e);
-        }
+    public static void saveJSON(String path, JSONMap out) throws IOException {
+        new JSONWriter(path).write(out);
     }
 
     public static JSONMap loadJSON(String path){

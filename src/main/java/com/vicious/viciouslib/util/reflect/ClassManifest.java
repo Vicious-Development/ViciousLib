@@ -56,14 +56,18 @@ public class ClassManifest<T> {
     public Set<ClassManifest<?>> getInterfaceManifests(){
         Set<ClassManifest<?>> set = new HashSet<>();
         for (ClassManifest<?> value : superManifests.values()) {
-            if(value.getTargetClass().isInterface()) set.add(value);
+            if(value.getTargetClass().isInterface()){
+                set.add(value);
+            }
         }
         return set;
     }
     public Set<ClassManifest<?>> getSuperclassManifests(){
         Set<ClassManifest<?>> set = new HashSet<>();
         for (ClassManifest<?> value : superManifests.values()) {
-            if(value.getTargetClass().isInterface()) set.add(value);
+            if(!value.getTargetClass().isInterface()){
+                set.add(value);
+            }
         }
         return set;
     }

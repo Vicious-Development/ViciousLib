@@ -116,7 +116,16 @@ public class Aunotamation {
         registerProcessor(new AnnotationProcessor<>(PersistentPath.class, Object.class) {
             @Override
             public void process(Object object, AnnotatedElement element) throws Exception {
-                if(!object.getClass().isAnnotationPresent(DontAutoLoad.class)) {
+                Class<?> cls = object instanceof Class<?> c ? c : object.getClass();
+                Object o = DeepReflection.cycleAndExecute(cls,k->{
+                    if(k.isAnnotationPresent(DontAutoLoad.class)){
+                        return true;
+                    }
+                    else{
+                        return null;
+                    }
+                });
+                if(o == null){
                     PersistenceHandler.init(object);
                 }
             }
