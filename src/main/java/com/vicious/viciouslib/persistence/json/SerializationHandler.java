@@ -11,8 +11,8 @@ import java.util.function.Function;
  * Mistyping 'true': treu
  * Typing a decimal when it is unnecessary (assuming the backend requires an int rather than a decimal): 123.0
  */
-public class Deserializer {
-    private static final Map<Class<?>, Function<String,?>> deserializers = new HashMap<>();
+public class SerializationHandler {
+    private static final Map<Class<?>, DSPair<?>> functs = new HashMap<>();
     static {
         registerDeserializer(Integer.class,(str)->Integer.parseInt(intForm(str)));
         registerDeserializer(int.class,(str)->Integer.parseInt(intForm(str)));
@@ -26,9 +26,9 @@ public class Deserializer {
         registerDeserializer(double.class,(str)->Double.parseDouble(decimalForm(str)));
         registerDeserializer(Float.class,(str)->Float.parseFloat(decimalForm(str)));
         registerDeserializer(float.class,(str)->Float.parseFloat(decimalForm(str)));
-        registerDeserializer(Boolean.class, Deserializer::booleanForm);
-        registerDeserializer(boolean.class, Deserializer::booleanForm);
-        registerDeserializer(String.class,(str)->str);
+        registerDeserializer(Boolean.class, SerializationHandler::booleanForm);
+        registerDeserializer(boolean.class, SerializationHandler::booleanForm);
+        registerHandler(String.class,(str)->str, s-> "\"" + s + "\"");
     }
     private static boolean booleanForm(String str) {
         return str.contains("t") || str.contains("T");
@@ -63,10 +63,13 @@ public class Deserializer {
         return out.toString();
     }
 
-    public static <V> V fix(String str, Class<V> cls){
-        if(deserializers.containsKey(cls)) {
+    public static <V> V deserialize(String str, Class<V> cls){
+        if(str.equalsIgnoreCase("null")){
+            return null;
+        }
+        if(functs.containsKey(cls)) {
             try {
-                return (V) deserializers.get(cls).apply(str);
+                return (V) functs.get(cls).deserialize(str);
             } catch (Exception e){
                 e.printStackTrace();
             }
@@ -74,7 +77,48 @@ public class Deserializer {
         return null;
     }
 
+    public static <V> String serialize(V v){
+        if(v == null){
+            return "null";
+        }
+        if(functs.containsKey(v.getClass())){
+            DSPair<V> pair = (DSPair<V>) functs.get(v.getClass());
+            return pair.serialize(v);
+        }
+        return v.toString();
+    }
+
     public static <V> void registerDeserializer(Class<V> cls, Function<String,V> func){
-        deserializers.put(cls,func);
+        if(!functs.containsKey(cls)) {
+            functs.put(cls, new DSPair<>(func,null));
+        }
+    }
+
+    public static <V> void registerHandler(Class<V> cls, Function<String, V> deserializer, Function<V,String> serializer){
+        if(!functs.containsKey(cls)){
+            functs.put(cls, new DSPair<>(deserializer,serializer));
+        }
+    }
+
+    private static class DSPair<V>{
+        private final Function<String, V> deserializer;
+        private final Function<V, String> serializer;
+        private DSPair(Function<String,V> deserializer, Function<V,String> serializer){
+            this.deserializer = deserializer;
+            this.serializer = serializer;
+        }
+
+        public String serialize(V v){
+            if(serializer == null){
+                return v.toString();
+            }
+            else {
+                return serializer.apply(v);
+            }
+        }
+
+        public V deserialize(String s){
+            return deserializer.apply(s);
+        }
     }
 }

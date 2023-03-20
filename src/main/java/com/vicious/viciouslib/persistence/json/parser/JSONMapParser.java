@@ -82,7 +82,7 @@ public class JSONMapParser extends JSONParser{
         for (int i = 0; i < value.length(); i++) {
             type.append(value.charAt(i));
         }
-        map.put(name,new JSONMapping(Deserializer.fix(type.string,type.type),type.string));
+        map.put(name,new JSONMapping(SerializationHandler.deserialize(type.string,type.type),type.string));
     }
 
     public JSONMap getMap(){

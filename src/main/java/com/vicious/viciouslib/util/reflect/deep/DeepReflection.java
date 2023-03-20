@@ -25,7 +25,10 @@ public class DeepReflection {
     public static Class<?> get(String name, String owner){
         return classMap.get(new ClassLocation(name,owner));
     }
-    public static void mapClasses(Enumeration<URL> roots, ClassLoader cloader){
+    public static void mapClasses(Enumeration<URL> roots, ClassLoader cloader) {
+        mapClasses(roots,cloader,false);
+    }
+    public static void mapClasses(Enumeration<URL> roots, ClassLoader cloader, boolean silentMode){
         while(roots.hasMoreElements()){
             JarReader.cycleJarEntries(roots.nextElement(), (e)->{
                 String name = e.getName();
@@ -52,8 +55,9 @@ public class DeepReflection {
                     ClassLocation cl = new ClassLocation(reverseSubstring(reverseIndexOf('.',name),name),owner);
                     classMap.put(cl,cls);
                 } catch (ClassNotFoundException classNotFoundException) {
-                    LoggerWrapper.logError("Failed to load a class that exists.");
-                    classNotFoundException.printStackTrace();
+                    if(!silentMode) {
+                        LoggerWrapper.logError("Failed to load a class that exists: " + classNotFoundException.getMessage());
+                    }
                 }
             });
         }

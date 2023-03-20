@@ -61,7 +61,7 @@ public class JSONArrayParser extends JSONParser {
         for (int i = 0; i < value.length(); i++) {
             type.append(value.charAt(i));
         }
-        arr.add(new JSONValue(Deserializer.fix(type.string,type.type),type.string));
+        arr.add(new JSONValue(SerializationHandler.deserialize(type.string,type.type),type.string));
     }
 
     public JSONArray getArray(){

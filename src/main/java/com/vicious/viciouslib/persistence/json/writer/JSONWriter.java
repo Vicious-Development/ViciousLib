@@ -2,6 +2,7 @@ package com.vicious.viciouslib.persistence.json.writer;
 
 import com.vicious.viciouslib.persistence.json.JSONArray;
 import com.vicious.viciouslib.persistence.json.JSONMap;
+import com.vicious.viciouslib.persistence.json.SerializationHandler;
 import com.vicious.viciouslib.persistence.json.value.JSONMapping;
 import com.vicious.viciouslib.persistence.json.value.JSONValue;
 
@@ -106,15 +107,8 @@ public class JSONWriter {
         }
         else{
             tab(tabs,builder);
-            boolean string = value.get() instanceof String;
             builder.append(name).append(" = ");
-            if(string){
-                builder.append('\"');
-            }
-            builder.append(value.get());
-            if(string) {
-                builder.append('\"');
-            }
+            builder.append(SerializationHandler.serialize(value.get()));
             builder.append('\n');
         }
         if(value.hasChildren()) {

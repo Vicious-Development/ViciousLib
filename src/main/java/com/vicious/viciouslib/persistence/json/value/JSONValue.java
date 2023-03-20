@@ -1,6 +1,6 @@
 package com.vicious.viciouslib.persistence.json.value;
 
-import com.vicious.viciouslib.persistence.json.Deserializer;
+import com.vicious.viciouslib.persistence.json.SerializationHandler;
 import com.vicious.viciouslib.persistence.json.writer.NamePair;
 import com.vicious.viciouslib.persistence.storage.AttrInfo;
 
@@ -47,7 +47,7 @@ public class JSONValue {
             if(value instanceof Number && Number.class.isAssignableFrom(cls)){
                 return (V) asN((Class<Number>)cls);
             }
-            V v = Deserializer.fix(valueString,cls);
+            V v = SerializationHandler.deserialize(valueString,cls);
             if(v == null){
                 throw new JSONException("Completely failed to parse a JSON value.");
             }
