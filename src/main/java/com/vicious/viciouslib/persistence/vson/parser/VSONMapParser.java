@@ -1,18 +1,18 @@
-package com.vicious.viciouslib.persistence.json.parser;
+package com.vicious.viciouslib.persistence.vson.parser;
 
-import com.vicious.viciouslib.persistence.json.*;
-import com.vicious.viciouslib.persistence.json.value.JSONMapping;
+import com.vicious.viciouslib.persistence.vson.*;
+import com.vicious.viciouslib.persistence.vson.value.VSONMapping;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
-public class JSONMapParser extends JSONParser{
-    private final JSONMap map = new JSONMap();
-    public JSONMapParser(FileInputStream fis){
+public class VSONMapParser extends VSONParser {
+    private final VSONMap map = new VSONMap();
+    public VSONMapParser(FileInputStream fis){
         start(fis);
     }
 
-    public JSONMapParser(String path) throws FileNotFoundException {
+    public VSONMapParser(String path) throws FileNotFoundException {
         FileInputStream fis = new FileInputStream(path);
         start(fis);
     }
@@ -32,14 +32,14 @@ public class JSONMapParser extends JSONParser{
                 continue;
             }
             if(c == '{'){
-                JSONMap inner = new JSONMapParser(fis).getMap();
+                VSONMap inner = new VSONMapParser(fis).getMap();
                 map.put(removeEdgeWhiteSpace(name),inner);
                 rv = false;
                 name = "";
                 value = "";
             }
             else if (c == '['){
-                JSONArray array = new JSONArrayParser(fis).getArray();
+                VSONArray array = new VSONArrayParser(fis).getArray();
                 map.put(removeEdgeWhiteSpace(name),array);
                 rv = false;
                 name = "";
@@ -82,10 +82,10 @@ public class JSONMapParser extends JSONParser{
         for (int i = 0; i < value.length(); i++) {
             type.append(value.charAt(i));
         }
-        map.put(name,new JSONMapping(SerializationHandler.deserialize(type.string,type.type),type.string));
+        map.put(name,new VSONMapping(SerializationHandler.deserialize(type.string,type.type),type.string));
     }
 
-    public JSONMap getMap(){
+    public VSONMap getMap(){
         return map;
     }
 }

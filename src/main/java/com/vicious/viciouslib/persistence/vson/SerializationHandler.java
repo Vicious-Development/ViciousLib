@@ -1,4 +1,4 @@
-package com.vicious.viciouslib.persistence.json;
+package com.vicious.viciouslib.persistence.vson;
 
 import java.util.HashMap;
 import java.util.Map;

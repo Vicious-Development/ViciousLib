@@ -1,4 +1,4 @@
-package com.vicious.viciouslib.persistence.json.parser;
+package com.vicious.viciouslib.persistence.vson.parser;
 
 public class AssumedType {
     private boolean isLocked = false;

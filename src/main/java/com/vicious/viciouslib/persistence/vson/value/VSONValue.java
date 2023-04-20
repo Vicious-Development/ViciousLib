@@ -1,22 +1,22 @@
-package com.vicious.viciouslib.persistence.json.value;
+package com.vicious.viciouslib.persistence.vson.value;
 
-import com.vicious.viciouslib.persistence.json.SerializationHandler;
-import com.vicious.viciouslib.persistence.json.writer.NamePair;
+import com.vicious.viciouslib.persistence.vson.SerializationHandler;
+import com.vicious.viciouslib.persistence.vson.writer.NamePair;
 import com.vicious.viciouslib.persistence.storage.AttrInfo;
 
 import java.util.List;
 
-public class JSONValue {
+public class VSONValue {
     protected Object value;
     protected String valueString;
 
     public AttrInfo info = AttrInfo.EMPTY;
     public List<NamePair> children;
 
-    public JSONValue(Object o) {
+    public VSONValue(Object o) {
         this.value=o;
     }
-    public JSONValue(Object o, String valueString) {
+    public VSONValue(Object o, String valueString) {
         this.value=o;
         this.valueString=valueString;
     }
@@ -49,7 +49,7 @@ public class JSONValue {
             }
             V v = SerializationHandler.deserialize(valueString,cls);
             if(v == null){
-                throw new JSONException("Completely failed to parse a JSON value.");
+                throw new VSONException("Completely failed to parse a VSON value.");
             }
             value =v;
             return v;
@@ -83,10 +83,10 @@ public class JSONValue {
     public String toString() {
         //This shouldn't ever happen as storing nulls doesn't really make much sense but this is supported regardless.
         if(value == null){
-            return "EmptyJSONValue";
+            return "EmptyVSONValue";
         }
         else{
-            return "JSONValue{class = " + value.getClass().getName() + ", value = " + value + ", serialized form = " + valueString + "}";
+            return "VSONValue{class = " + value.getClass().getName() + ", value = " + value + ", serialized form = " + valueString + "}";
         }
     }
 }

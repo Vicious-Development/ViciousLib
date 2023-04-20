@@ -1,9 +1,9 @@
-package com.vicious.viciouslib.persistence.json.parser;
+package com.vicious.viciouslib.persistence.vson.parser;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 
-public abstract class JSONParser {
+public abstract class VSONParser {
     protected FileInputStream fis;
     public boolean hasTraversed=false;
     public boolean completed = false;

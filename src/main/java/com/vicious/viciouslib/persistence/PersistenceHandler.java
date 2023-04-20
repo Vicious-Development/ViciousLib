@@ -1,10 +1,10 @@
 package com.vicious.viciouslib.persistence;
 
 import com.vicious.viciouslib.aunotamation.InvalidAnnotationException;
-import com.vicious.viciouslib.persistence.json.JSONMap;
-import com.vicious.viciouslib.persistence.json.parser.JSONMapParser;
-import com.vicious.viciouslib.persistence.json.value.JSONMapping;
-import com.vicious.viciouslib.persistence.json.writer.JSONWriter;
+import com.vicious.viciouslib.persistence.vson.VSONMap;
+import com.vicious.viciouslib.persistence.vson.parser.VSONMapParser;
+import com.vicious.viciouslib.persistence.vson.value.VSONMapping;
+import com.vicious.viciouslib.persistence.vson.writer.VSONWriter;
 import com.vicious.viciouslib.persistence.storage.AnnotationAttrInfo;
 import com.vicious.viciouslib.persistence.storage.AttributeModificationEvent;
 import com.vicious.viciouslib.persistence.storage.aunotamations.LoadOnly;
@@ -28,7 +28,7 @@ public class PersistenceHandler {
     public static void load(Object o){
         boolean isStatic = o instanceof Class<?>;
         Class<?> cls = isStatic ? (Class<?>) o : o.getClass();
-        JSONMap map = loadJSON(getPath(o));
+        VSONMap map = loadVSON(getPath(o));
         if(map == null || map.isEmpty()){
             return;
         }
@@ -42,7 +42,7 @@ public class PersistenceHandler {
             return null;
         });
         if(failure != null){
-            throw new RuntimeException("Failed to load a JSON object.",failure);
+            throw new RuntimeException("Failed to load a VSON object.",failure);
         }
     }
 
@@ -56,7 +56,7 @@ public class PersistenceHandler {
         return true;
     }
 
-    private static void load(ClassManifest<?> manifest, JSONMap map, Object o, boolean isStatic) {
+    private static void load(ClassManifest<?> manifest, VSONMap map, Object o, boolean isStatic) {
         List<AnnotatedElement> members = manifest.getMembersWithAnnotation(Save.class);
         List<AnnotatedElement> listeners = manifest.getMembersWithAnnotation(OnChanged.class);
         try {
@@ -183,7 +183,7 @@ public class PersistenceHandler {
         if(isLoadOnly(cls) && new File(path).exists()){
             return;
         }
-        JSONMap out = new JSONMap();
+        VSONMap out = new VSONMap();
         Throwable failure = DeepReflection.cycleAndExecute(cls,c->{
             ClassManifest<?> manifest = ClassAnalyzer.analyzeClass(c);
             try {
@@ -194,17 +194,17 @@ public class PersistenceHandler {
             return null;
         });
         if(failure != null){
-            throw new RuntimeException("Failed to save a JSON object.",failure);
+            throw new RuntimeException("Failed to save a VSON object.",failure);
         }
         try {
-            saveJSON(path, out);
+            saveVSON(path, out);
         } catch (FileNotFoundException ignored){}
         catch (IOException e){
             throw new RuntimeException(e);
         }
     }
 
-    private static void save(ClassManifest<?> manifest, JSONMap out, Object o, boolean isStatic) {
+    private static void save(ClassManifest<?> manifest, VSONMap out, Object o, boolean isStatic) {
         List<AnnotatedElement> members = manifest.getMembersWithAnnotation(Save.class);
         for (AnnotatedElement member : members) {
             if(member instanceof Field f){
@@ -217,19 +217,19 @@ public class PersistenceHandler {
                     name = f.getName();
                 }
                 try {
-                    out.put(name,new JSONMapping(f.get(o),new AnnotationAttrInfo(save)));
+                    out.put(name,new VSONMapping(f.get(o),new AnnotationAttrInfo(save)));
                 } catch (IllegalAccessException ignored) {}
             }
         }
     }
 
-    public static void saveJSON(String path, JSONMap out) throws IOException {
-        new JSONWriter(path).write(out);
+    public static void saveVSON(String path, VSONMap out) throws IOException {
+        new VSONWriter(path).write(out);
     }
 
-    public static JSONMap loadJSON(String path){
+    public static VSONMap loadVSON(String path){
         try {
-            JSONMapParser parser = new JSONMapParser(path);
+            VSONMapParser parser = new VSONMapParser(path);
             return parser.getMap();
         } catch (FileNotFoundException ignored) {
             return null;

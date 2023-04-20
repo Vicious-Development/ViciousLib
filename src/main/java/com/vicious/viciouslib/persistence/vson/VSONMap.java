@@ -1,20 +1,20 @@
-package com.vicious.viciouslib.persistence.json;
+package com.vicious.viciouslib.persistence.vson;
 
-import com.vicious.viciouslib.persistence.json.value.JSONMapping;
+import com.vicious.viciouslib.persistence.vson.value.VSONMapping;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class JSONMap extends LinkedHashMap<String, JSONMapping> {
+public class VSONMap extends LinkedHashMap<String, VSONMapping> {
     @Override
     public String toString() {
         StringBuilder out = new StringBuilder();
-        for (Map.Entry<String, JSONMapping> entry : entrySet()) {
+        for (Map.Entry<String, VSONMapping> entry : entrySet()) {
             out.append("\n").append(entry.getKey()).append(" = ").append(entry.getValue());
         }
         return out.toString();
     }
     public void put(String key, Object o){
-        put(key, new JSONMapping(o));
+        put(key, new VSONMapping(o));
     }
 }

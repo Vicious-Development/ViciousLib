@@ -1,43 +1,43 @@
-package com.vicious.viciouslib.persistence.json.writer;
+package com.vicious.viciouslib.persistence.vson.writer;
 
-import com.vicious.viciouslib.persistence.json.JSONArray;
-import com.vicious.viciouslib.persistence.json.JSONMap;
-import com.vicious.viciouslib.persistence.json.SerializationHandler;
-import com.vicious.viciouslib.persistence.json.value.JSONMapping;
-import com.vicious.viciouslib.persistence.json.value.JSONValue;
+import com.vicious.viciouslib.persistence.vson.VSONArray;
+import com.vicious.viciouslib.persistence.vson.VSONMap;
+import com.vicious.viciouslib.persistence.vson.SerializationHandler;
+import com.vicious.viciouslib.persistence.vson.value.VSONMapping;
+import com.vicious.viciouslib.persistence.vson.value.VSONValue;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Map;
 
-public class JSONWriter {
+public class VSONWriter {
     private File file;
-    public JSONWriter(String file){
+    public VSONWriter(String file){
         this.file=new File(file);
     }
-    public void write(JSONMap map) throws IOException {
+    public void write(VSONMap map) throws IOException {
         FileWriter writer = new FileWriter(file);
         StringBuilder builder = new StringBuilder();
         writeMap(0,map,builder);
         writer.write(builder.toString());
         writer.close();
     }
-    public void writeArray(int tabs, JSONArray array, StringBuilder builder){
-        for (JSONValue value : array) {
+    public void writeArray(int tabs, VSONArray array, StringBuilder builder){
+        for (VSONValue value : array) {
             writeUnmappedValue(tabs, value, builder);
         }
     }
 
-    private void writeUnmappedValue(int tabs, JSONValue value, StringBuilder builder) {
-        if(value.get() instanceof JSONMap m) {
+    private void writeUnmappedValue(int tabs, VSONValue value, StringBuilder builder) {
+        if(value.get() instanceof VSONMap m) {
             tab(tabs,builder);
             builder.append("{\n");
             writeMap(tabs+1,m,builder);
             tab(tabs,builder);
             builder.append("}\n");
         }
-        else if(value.get() instanceof JSONArray a){
+        else if(value.get() instanceof VSONArray a){
             tab(tabs,builder);
             builder.append("[\n");
             writeArray(tabs+1,a,builder);
@@ -58,9 +58,9 @@ public class JSONWriter {
         }
     }
 
-    protected void writeMap(int tabs, JSONMap map, StringBuilder builder){
-        for (Map.Entry<String, JSONMapping> entry : map.entrySet()) {
-            JSONMapping value = entry.getValue();
+    protected void writeMap(int tabs, VSONMap map, StringBuilder builder){
+        for (Map.Entry<String, VSONMapping> entry : map.entrySet()) {
+            VSONMapping value = entry.getValue();
             String name = entry.getKey();
             if(value.info != null) {
                 if(!value.info.hasParent()) {
@@ -73,7 +73,7 @@ public class JSONWriter {
         }
     }
 
-    protected void writeValue(int tabs, String name, JSONValue value, StringBuilder builder) {
+    protected void writeValue(int tabs, String name, VSONValue value, StringBuilder builder) {
         if(value.info.hasDescription()) {
             String description = value.info.description();
             if (description != null && !description.isEmpty()) {
@@ -91,14 +91,14 @@ public class JSONWriter {
                 builder.append('\n');
             }
         }
-        if(value.get() instanceof JSONMap m) {
+        if(value.get() instanceof VSONMap m) {
             tab(tabs,builder);
             builder.append(name).append(" = {\n");
             writeMap(tabs+1,m,builder);
             tab(tabs,builder);
             builder.append("}\n");
         }
-        else if(value.get() instanceof JSONArray a){
+        else if(value.get() instanceof VSONArray a){
             tab(tabs,builder);
             builder.append(name).append(" = [\n");
             writeArray(tabs+1,a,builder);

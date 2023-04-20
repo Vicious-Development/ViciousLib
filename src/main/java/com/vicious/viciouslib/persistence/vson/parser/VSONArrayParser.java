@@ -1,13 +1,13 @@
-package com.vicious.viciouslib.persistence.json.parser;
+package com.vicious.viciouslib.persistence.vson.parser;
 
-import com.vicious.viciouslib.persistence.json.*;
-import com.vicious.viciouslib.persistence.json.value.JSONValue;
+import com.vicious.viciouslib.persistence.vson.*;
+import com.vicious.viciouslib.persistence.vson.value.VSONValue;
 
 import java.io.FileInputStream;
 
-public class JSONArrayParser extends JSONParser {
-    private final JSONArray arr = new JSONArray();
-    public JSONArrayParser(FileInputStream fis){
+public class VSONArrayParser extends VSONParser {
+    private final VSONArray arr = new VSONArray();
+    public VSONArrayParser(FileInputStream fis){
         start(fis);
     }
 
@@ -24,12 +24,12 @@ public class JSONArrayParser extends JSONParser {
                 continue;
             }
             if(c == '{'){
-                JSONMap inner = new JSONMapParser(fis).getMap();
+                VSONMap inner = new VSONMapParser(fis).getMap();
                 arr.addObject(inner);
                 value = "";
             }
             else if (c == '['){
-                JSONArray array = new JSONArrayParser(fis).getArray();
+                VSONArray array = new VSONArrayParser(fis).getArray();
                 arr.addObject(array);
                 value = "";
             }
@@ -61,10 +61,10 @@ public class JSONArrayParser extends JSONParser {
         for (int i = 0; i < value.length(); i++) {
             type.append(value.charAt(i));
         }
-        arr.add(new JSONValue(SerializationHandler.deserialize(type.string,type.type),type.string));
+        arr.add(new VSONValue(SerializationHandler.deserialize(type.string,type.type),type.string));
     }
 
-    public JSONArray getArray(){
+    public VSONArray getArray(){
         return arr;
     }
 }
