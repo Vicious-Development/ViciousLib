@@ -1,5 +1,6 @@
 package com.vicious.viciouslib.permission;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -77,7 +78,7 @@ public class PermissionTree {
 
     public List<String> toPathList(String permission){
         if(permission == null || permission.isEmpty()){
-            return List.of();
+            return new ArrayList<>();
         }
         List<String> permissions = new LinkedList<>();
         StringBuilder val = new StringBuilder();

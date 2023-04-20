@@ -21,17 +21,18 @@ public class Aunotamation {
     private static final Map<Class<?>,AnnotationProcessor<?,?>> processors = new HashMap<>();
     private static final Map<Class<?>,ObjectProcessor> objectProcessors = new HashMap<>();
 
-    private static Map<Class<?>,List<Runnable>> runOnInit = new HashMap<>();
+    private static final Map<Class<?>,List<Runnable>> runOnInit = new HashMap<>();
 
     static {
         init();
     }
 
+    @SuppressWarnings({"rawtypes","unchecked"})
     public static void init(){
         if(hasProcessor(ModifiedWith.class)){
             return;
         }
-        registerProcessor(new AnnotationProcessor<>(ModifiedWith.class,Class.class){
+        registerProcessor(new AnnotationProcessor<ModifiedWith,Class>(ModifiedWith.class,Class.class){
             @Override
             public void process(Class cls, AnnotatedElement element) {
                 ModifiedWith mods = (ModifiedWith) cls.getAnnotation(ModifiedWith.class);
@@ -40,7 +41,7 @@ public class Aunotamation {
                 }
             }
         });
-        registerProcessor(new AnnotationProcessor<>(NotModifiedWith.class,Class.class){
+        registerProcessor(new AnnotationProcessor<NotModifiedWith,Class>(NotModifiedWith.class,Class.class){
             @Override
             public void process(Class cls, AnnotatedElement element) {
                 NotModifiedWith mods = (NotModifiedWith) cls.getAnnotation(NotModifiedWith.class);
@@ -49,7 +50,7 @@ public class Aunotamation {
                 }
             }
         });
-        registerProcessor(new AnnotationProcessor<>(Conflicts.class,Class.class){
+        registerProcessor(new AnnotationProcessor<Conflicts,Class>(Conflicts.class,Class.class){
             @Override
             public void process(Class cls, AnnotatedElement element) {
                 Conflicts conflicts = (Conflicts) cls.getAnnotation(Conflicts.class);
@@ -58,7 +59,7 @@ public class Aunotamation {
                 }
             }
         });
-        registerProcessor(new AnnotationProcessor<>(RequiredType.class,Class.class){
+        registerProcessor(new AnnotationProcessor<RequiredType,Class>(RequiredType.class,Class.class){
             @Override
             public void process(Class cls, AnnotatedElement element) {
                 RequiredType requiredType = (RequiredType) cls.getAnnotation(RequiredType.class);
@@ -68,7 +69,7 @@ public class Aunotamation {
                 }
             }
         });
-        registerProcessor(new AnnotationProcessor<>(AllowedIn.class,Class.class){
+        registerProcessor(new AnnotationProcessor<AllowedIn,Class>(AllowedIn.class,Class.class){
             @Override
             public void process(Class cls, AnnotatedElement element) {
                 AllowedIn allowedIn = (AllowedIn) cls.getAnnotation(AllowedIn.class);
@@ -77,11 +78,12 @@ public class Aunotamation {
                 }
             }
         });
-        registerProcessor(new AnnotationProcessor<>(Parameters.class,Class.class) {
+        registerProcessor(new AnnotationProcessor<Parameters,Class>(Parameters.class,Class.class) {
             @Override
             public void process(Class cls, AnnotatedElement element) {
                 Parameters parameters = (Parameters) cls.getAnnotation(Parameters.class);
-                if(element instanceof Executable executable){
+                if(element instanceof Executable){
+                    Executable executable = (Executable) element;
                     Class<?>[] actual = executable.getParameterTypes();
                     Class<?>[] expected = parameters.value();
                     if(actual.length != expected.length){
@@ -98,7 +100,7 @@ public class Aunotamation {
                 }
             }
         });
-        registerProcessor(new AnnotationProcessor<>(AnnotatedWith.class,Class.class) {
+        registerProcessor(new AnnotationProcessor<AnnotatedWith,Class>(AnnotatedWith.class,Class.class) {
             @Override
             public void process(Class cls, AnnotatedElement element) throws Exception {
                 AnnotatedWith annotatedWith = (AnnotatedWith) cls.getAnnotation(AnnotatedWith.class);
@@ -109,14 +111,14 @@ public class Aunotamation {
                 }
             }
         });
-        registerProcessor(new AnnotationProcessor<>(Save.class, Object.class) {
+        registerProcessor(new AnnotationProcessor<Save,Object>(Save.class, Object.class) {
             @Override
             public void process(Object object, AnnotatedElement element) throws Exception {}
         });
-        registerProcessor(new AnnotationProcessor<>(PersistentPath.class, Object.class) {
+        registerProcessor(new AnnotationProcessor<PersistentPath,Object>(PersistentPath.class, Object.class) {
             @Override
             public void process(Object object, AnnotatedElement element) throws Exception {
-                Class<?> cls = object instanceof Class<?> c ? c : object.getClass();
+                Class<?> cls = object instanceof Class<?> ? (Class<?>) object : object.getClass();
                 Object o = DeepReflection.cycleAndExecute(cls,k->{
                     if(k.isAnnotationPresent(DontAutoLoad.class)){
                         return true;
@@ -130,30 +132,33 @@ public class Aunotamation {
                 }
             }
         });
-        Aunotamation.registerProcessor(new AnnotationProcessor<>(GlobalInterceptor.class,Object.class) {
+        Aunotamation.registerProcessor(new AnnotationProcessor<GlobalInterceptor,Object>(GlobalInterceptor.class,Object.class) {
             @Override
             public void process(Object object, AnnotatedElement elem) {
-                if (elem instanceof Method m) {
+                if (elem instanceof Method) {
+                    Method m = (Method) elem;
                     if(Modifier.isStatic(m.getModifiers()) && object instanceof Class<?>) {
                         ViciousEventBroadcaster.registerAunotamated(m.getParameterTypes()[0], object, m);
                     }
                     else if(!Modifier.isStatic(m.getModifiers()) && !(object instanceof Class<?>)){
                         ViciousEventBroadcaster.registerAunotamated(m.getParameterTypes()[0], object, m);
                     }
-                } else if (elem instanceof Constructor<?> c) {
+                } else if (elem instanceof Constructor<?>) {
+                    Constructor<?> c = (Constructor) elem;
                     ViciousEventBroadcaster.registerAunotamated(c.getParameterTypes()[0], object, c);
                 }
             }
         });
-        Aunotamation.registerProcessor(new AnnotationProcessor<>(MainEntry.class,Object.class) {
+        Aunotamation.registerProcessor(new AnnotationProcessor<MainEntry,Object>(MainEntry.class,Object.class) {
             @Override
             public void process(Object object, AnnotatedElement elem) {
             }
         });
-        Aunotamation.registerProcessor(new AnnotationProcessor<>(LocalInterceptor.class, Object.class) {
+        Aunotamation.registerProcessor(new AnnotationProcessor<LocalInterceptor,Object>(LocalInterceptor.class, Object.class) {
             @Override
             public void process(Object object, AnnotatedElement element) throws Exception {
-                if(element instanceof Method m) {
+                if(element instanceof Method) {
+                    Method m = (Method) element;
                     LocalInterceptor interceptor = element.getAnnotation(LocalInterceptor.class);
                     ClassManifest<?> manif = ClassAnalyzer.getManifest(m.getDeclaringClass());
                     for (String name : interceptor.value()) {
@@ -164,11 +169,13 @@ public class Aunotamation {
                 }
             }
         });
-        Aunotamation.registerProcessor(new AnnotationProcessor<>(BroadcastTo.class, Object.class) {
+        Aunotamation.registerProcessor(new AnnotationProcessor<BroadcastTo,Object>(BroadcastTo.class, Object.class) {
             @Override
             public void process(Object object, AnnotatedElement element) throws Exception {
-                if(element instanceof Field f){
-                    if(f.get(object) instanceof InstanceEventBroadcaster ieb){
+                if(element instanceof Field){
+                    Field f = (Field) element;
+                    if(f.get(object) instanceof InstanceEventBroadcaster){
+                        InstanceEventBroadcaster ieb = (InstanceEventBroadcaster) f.get(object);
                         BroadcastTo bt = f.getAnnotation(BroadcastTo.class);
                         ClassManifest<?> manif = ClassAnalyzer.getManifest(f.getDeclaringClass());
                         for (String s : bt.value()) {
@@ -179,30 +186,30 @@ public class Aunotamation {
                 }
             }
         });
-        Aunotamation.registerProcessor(new AnnotationProcessor<>(OnChanged.class, Object.class) {
+        Aunotamation.registerProcessor(new AnnotationProcessor<OnChanged,Object>(OnChanged.class, Object.class) {
             @Override
             public void process(Object object, AnnotatedElement element) throws Exception {
             }
         });
     }
     private static Class<?> getType(AnnotatedElement element){
-        if(element instanceof Field f) return f.getType();
-        if(element instanceof Method m) return m.getReturnType();
+        if(element instanceof Field) return ((Field)element).getType();
+        if(element instanceof Method) return ((Method)element).getReturnType();
         throw new InvalidAnnotationException("Your annotation is only applicable to fields and methods!");
     }
     private static int getModifiers(AnnotatedElement element){
-        if(element instanceof Class<?> cls) return cls.getModifiers();
-        if(element instanceof Member mem) return mem.getModifiers();
+        if(element instanceof Class<?>) return ((Class<?>)element).getModifiers();
+        if(element instanceof Member) return ((Member)element).getModifiers();
         throw new InvalidAnnotationException("Not yet implemented: " + element.getClass());
     }
     public static Class<?> getElementLocation(AnnotatedElement element){
-        if(element instanceof Class<?> cls) return cls;
-        if(element instanceof Member mem) return mem.getDeclaringClass();
+        if(element instanceof Class<?>) return (Class<?>)element;
+        if(element instanceof Member) return ((Member)element).getDeclaringClass();
         throw new InvalidAnnotationException("Not yet implemented: " + element.getClass());
     }
     public static String getElementName(AnnotatedElement element){
-        if(element instanceof Class<?> cls) return cls.getName();
-        if(element instanceof Member mem) return mem.getName();
+        if(element instanceof Class<?>) return ((Class<?>)element).getName();
+        if(element instanceof Member) return ((Member)element).getName();
         throw new InvalidAnnotationException("Not yet implemented: " + element.getClass());
     }
     private static boolean annotatedWithAtLeastOneOf(AnnotatedElement element, Class<? extends Annotation>... annotations){
@@ -255,7 +262,7 @@ public class Aunotamation {
 
     public static <T> T processObject(T o) {
         AtomicReference<InvalidAnnotationException> ex = new AtomicReference<>();
-        DeepReflection.cycleAndExecute(o instanceof Class k ? k : o.getClass(),(objectType)-> {
+        DeepReflection.cycleAndExecute(o instanceof Class ? (Class<?>)o : o.getClass(),(objectType)-> {
             if(ex.get() != null){
                 return null;
             }
@@ -280,7 +287,7 @@ public class Aunotamation {
                                     AnnotationProcessor<?,?> internal = processors.get(extension);
                                     //Automatically register annotation processors for those without it.
                                     if(internal == null){
-                                        internal = new AnnotationProcessor<>((Class<Annotation>) extension,Object.class) {
+                                        internal = new AnnotationProcessor<Annotation,Object>((Class<Annotation>) extension,Object.class) {
                                             @Override
                                             public void process(Object object, AnnotatedElement element){}
                                         };
@@ -316,7 +323,8 @@ public class Aunotamation {
                 AnnotationProcessor<?,?> processor = processors.get(annotation.annotationType());
                 processor.processObject(annotationClass,element);
             }
-            else if(annotation instanceof Extends extensions){
+            else if(annotation instanceof Extends){
+                Extends extensions = (Extends) annotation;
                 for (Class<? extends Annotation> extension : extensions.value()) {
                     validateAnnotation(extension,element);
                 }

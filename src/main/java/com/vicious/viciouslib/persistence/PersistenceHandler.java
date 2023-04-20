@@ -61,7 +61,8 @@ public class PersistenceHandler {
         List<AnnotatedElement> listeners = manifest.getMembersWithAnnotation(OnChanged.class);
         try {
             for (AnnotatedElement member : members) {
-                if(member instanceof Field f) {
+                if(member instanceof Field) {
+                    Field f = (Field) member;
                     if(!isValid(f,isStatic)){
                         continue;
                     }
@@ -73,7 +74,8 @@ public class PersistenceHandler {
                     if(map.containsKey(name)) {
                         Object value = map.get(name).softAs(f.getType());
                         for (AnnotatedElement listener : listeners) {
-                            if(listener instanceof Method m) {
+                            if(listener instanceof Method) {
+                                Method m = (Method) listener;
                                 if(!isStatic && Modifier.isStatic(m.getModifiers())){
                                     continue;
                                 }
@@ -85,7 +87,8 @@ public class PersistenceHandler {
                         }
                         f.set(o, value);
                         for (AnnotatedElement listener : listeners) {
-                            if(listener instanceof Method m) {
+                            if(listener instanceof Method) {
+                                Method m = (Method) listener;
                                 if(!isStatic && Modifier.isStatic(m.getModifiers())){
                                     continue;
                                 }
@@ -133,7 +136,8 @@ public class PersistenceHandler {
         List<AnnotatedElement> persistentPath = manifest.getMembersWithAnnotation(PersistentPath.class);
         List<Field> valid = new ArrayList<>();
         for (AnnotatedElement annotatedElement : persistentPath) {
-            if(annotatedElement instanceof Field f){
+            if(annotatedElement instanceof Field){
+                Field f = (Field) annotatedElement;
                 if(isStatic && Modifier.isStatic(f.getModifiers())){
                     valid.add(f);
                 }
@@ -207,7 +211,8 @@ public class PersistenceHandler {
     private static void save(ClassManifest<?> manifest, VSONMap out, Object o, boolean isStatic) {
         List<AnnotatedElement> members = manifest.getMembersWithAnnotation(Save.class);
         for (AnnotatedElement member : members) {
-            if(member instanceof Field f){
+            if(member instanceof Field){
+                Field f = (Field) member;
                 if(!isValid(f,isStatic)){
                     continue;
                 }

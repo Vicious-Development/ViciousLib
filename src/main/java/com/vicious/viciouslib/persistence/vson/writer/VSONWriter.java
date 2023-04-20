@@ -30,14 +30,16 @@ public class VSONWriter {
     }
 
     private void writeUnmappedValue(int tabs, VSONValue value, StringBuilder builder) {
-        if(value.get() instanceof VSONMap m) {
+        if(value.get() instanceof VSONMap) {
+            VSONMap m = (VSONMap) value.get();
             tab(tabs,builder);
             builder.append("{\n");
             writeMap(tabs+1,m,builder);
             tab(tabs,builder);
             builder.append("}\n");
         }
-        else if(value.get() instanceof VSONArray a){
+        else if(value.get() instanceof VSONArray){
+            VSONArray a = (VSONArray) value.get();
             tab(tabs,builder);
             builder.append("[\n");
             writeArray(tabs+1,a,builder);
@@ -91,14 +93,16 @@ public class VSONWriter {
                 builder.append('\n');
             }
         }
-        if(value.get() instanceof VSONMap m) {
+        if(value.get() instanceof VSONMap) {
+            VSONMap m = (VSONMap) value.get();
             tab(tabs,builder);
             builder.append(name).append(" = {\n");
             writeMap(tabs+1,m,builder);
             tab(tabs,builder);
             builder.append("}\n");
         }
-        else if(value.get() instanceof VSONArray a){
+        else if(value.get() instanceof VSONArray){
+            VSONArray a = (VSONArray) value.get();
             tab(tabs,builder);
             builder.append(name).append(" = [\n");
             writeArray(tabs+1,a,builder);

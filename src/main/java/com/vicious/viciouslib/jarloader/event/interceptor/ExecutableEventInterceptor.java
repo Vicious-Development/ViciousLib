@@ -12,11 +12,11 @@ public class ExecutableEventInterceptor extends EventInterceptorInstance {
         this.exec=exec;
     }
     public Object intercept(Object event) throws InvocationTargetException, IllegalAccessException, InstantiationException {
-        if(exec instanceof Method m){
-            m.invoke(interceptor,event);
+        if(exec instanceof Method){
+            ((Method) exec).invoke(interceptor,event);
         }
-        else if(exec instanceof Constructor c){
-            return c.newInstance(event);
+        else if(exec instanceof Constructor){
+            return ((Constructor<?>) exec).newInstance(event);
         }
         return null;
     }

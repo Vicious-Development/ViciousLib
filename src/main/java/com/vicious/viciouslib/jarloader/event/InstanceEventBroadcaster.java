@@ -35,8 +35,8 @@ public interface InstanceEventBroadcaster {
 
     default void register(Consumer<Object> consumer){
         Type type = typeResolver.resolveType(consumer.getClass().getGenericSuperclass());
-        if(type instanceof Class<?> eventClass){
-            EventInterceptorInstance instance = new LambdaEventInterceptor(consumer,consumer,eventClass);
+        if(type instanceof Class<?>){
+            EventInterceptorInstance instance = new LambdaEventInterceptor(consumer,consumer,(Class<?>)type);
             register(instance);
         }
         else{
