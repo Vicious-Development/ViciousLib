@@ -5,10 +5,11 @@ import com.vicious.viciouslib.persistence.vson.value.VSONMapping;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.InputStream;
 
 public class VSONMapParser extends VSONParser {
     private final VSONMap map = new VSONMap();
-    public VSONMapParser(FileInputStream fis){
+    public VSONMapParser(InputStream fis){
         start(fis);
     }
 
@@ -17,7 +18,7 @@ public class VSONMapParser extends VSONParser {
         start(fis);
     }
 
-    public void start(FileInputStream fis){
+    public void start(InputStream fis){
         this.fis = fis;
         String name = "";
         boolean rv = false;

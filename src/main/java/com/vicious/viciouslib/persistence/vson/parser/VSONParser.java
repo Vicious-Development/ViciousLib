@@ -1,10 +1,10 @@
 package com.vicious.viciouslib.persistence.vson.parser;
 
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 public abstract class VSONParser {
-    protected FileInputStream fis;
+    protected InputStream fis;
     public boolean hasTraversed=false;
     public boolean completed = false;
 
@@ -16,7 +16,7 @@ public abstract class VSONParser {
             return false;
         }
     }
-    protected abstract void start(FileInputStream fis);
+    protected abstract void start(InputStream fis);
 
     protected char read() {
         try {

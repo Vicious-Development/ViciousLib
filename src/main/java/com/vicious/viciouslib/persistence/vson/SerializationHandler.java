@@ -1,8 +1,12 @@
 package com.vicious.viciouslib.persistence.vson;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.vicious.viciouslib.persistence.vson.value.VSONException;
+import com.vicious.viciouslib.util.ClassMap;
+
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * This deserializer is designed to fix user errors.
@@ -12,7 +16,8 @@ import java.util.function.Function;
  * Typing a decimal when it is unnecessary (assuming the backend requires an int rather than a decimal): 123.0
  */
 public class SerializationHandler {
-    private static final Map<Class<?>, DSPair<?>> functs = new HashMap<>();
+    private static final ClassMap<DSPair<?>> functs = new ClassMap<>();
+    private static final ClassMap<Supplier<?>> initializers = new ClassMap<>();
     static {
         registerDeserializer(Integer.class,(str)->Integer.parseInt(intForm(str)));
         registerDeserializer(int.class,(str)->Integer.parseInt(intForm(str)));
@@ -98,6 +103,29 @@ public class SerializationHandler {
         if(!functs.containsKey(cls)){
             functs.put(cls, new DSPair<>(deserializer,serializer));
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <V> V initialize(Class<V> cls) {
+        if(!initializers.containsKey(cls)){
+            try {
+                Constructor<V> cnst = cls.getConstructor();
+                addInitializer(cls,()->{
+                    try {
+                        return cnst.newInstance();
+                    } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+            } catch (NoSuchMethodException e) {
+                throw new VSONException(cls.getCanonicalName() + " is missing a public default constructor!");
+            }
+        }
+        return (V) initializers.get(cls).get();
+    }
+
+    public static <V> void addInitializer(Class<V> cls, Supplier<V> initializer){
+        initializers.put(cls,initializer);
     }
 
     private static class DSPair<V>{
