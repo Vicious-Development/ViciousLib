@@ -1,17 +1,19 @@
 package com.vicious.viciouslib.persistence.vson.parser;
 
-import com.vicious.viciouslib.persistence.vson.*;
+import com.vicious.viciouslib.persistence.vson.SerializationHandler;
+import com.vicious.viciouslib.persistence.vson.VSONArray;
+import com.vicious.viciouslib.persistence.vson.VSONMap;
 import com.vicious.viciouslib.persistence.vson.value.VSONValue;
 
-import java.io.FileInputStream;
+import java.io.InputStream;
 
 public class VSONArrayParser extends VSONParser {
     private final VSONArray arr = new VSONArray();
-    public VSONArrayParser(FileInputStream fis){
+    public VSONArrayParser(InputStream fis){
         start(fis);
     }
 
-    public void start(FileInputStream fis){
+    public void start(InputStream fis){
         this.fis = fis;
         String value = "";
         while(hasData()) {

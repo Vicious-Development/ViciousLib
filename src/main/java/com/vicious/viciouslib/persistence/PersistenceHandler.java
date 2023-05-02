@@ -1,16 +1,17 @@
 package com.vicious.viciouslib.persistence;
 
 import com.vicious.viciouslib.aunotamation.InvalidAnnotationException;
-import com.vicious.viciouslib.persistence.vson.VSONMap;
-import com.vicious.viciouslib.persistence.vson.parser.VSONMapParser;
-import com.vicious.viciouslib.persistence.vson.value.VSONMapping;
-import com.vicious.viciouslib.persistence.vson.writer.VSONWriter;
 import com.vicious.viciouslib.persistence.storage.AnnotationAttrInfo;
 import com.vicious.viciouslib.persistence.storage.AttributeModificationEvent;
-import com.vicious.viciouslib.persistence.storage.aunotamations.LoadOnly;
-import com.vicious.viciouslib.persistence.storage.aunotamations.OnChanged;
-import com.vicious.viciouslib.persistence.storage.aunotamations.PersistentPath;
-import com.vicious.viciouslib.persistence.storage.aunotamations.Save;
+import com.vicious.viciouslib.persistence.storage.aunotamations.*;
+import com.vicious.viciouslib.persistence.vson.SerializationHandler;
+import com.vicious.viciouslib.persistence.vson.VSONArray;
+import com.vicious.viciouslib.persistence.vson.VSONMap;
+import com.vicious.viciouslib.persistence.vson.parser.VSONMapParser;
+import com.vicious.viciouslib.persistence.vson.value.VSONException;
+import com.vicious.viciouslib.persistence.vson.value.VSONMapping;
+import com.vicious.viciouslib.persistence.vson.value.VSONValue;
+import com.vicious.viciouslib.persistence.vson.writer.VSONWriter;
 import com.vicious.viciouslib.util.ClassAnalyzer;
 import com.vicious.viciouslib.util.reflect.ClassManifest;
 import com.vicious.viciouslib.util.reflect.deep.DeepReflection;
@@ -21,7 +22,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.*;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class PersistenceHandler {
@@ -57,6 +60,9 @@ public class PersistenceHandler {
     }
 
     private static void load(ClassManifest<?> manifest, VSONMap map, Object o, boolean isStatic) {
+        if(o == null) {
+            o = SerializationHandler.initialize(manifest.getTargetClass());
+        }
         List<AnnotatedElement> members = manifest.getMembersWithAnnotation(Save.class);
         List<AnnotatedElement> listeners = manifest.getMembersWithAnnotation(OnChanged.class);
         try {
@@ -72,7 +78,7 @@ public class PersistenceHandler {
                         name = f.getName();
                     }
                     if(map.containsKey(name)) {
-                        Object value = map.get(name).softAs(f.getType());
+                        Object value = null;
                         for (AnnotatedElement listener : listeners) {
                             if(listener instanceof Method) {
                                 Method m = (Method) listener;
@@ -85,7 +91,17 @@ public class PersistenceHandler {
                                 m.invoke(o,new AttributeModificationEvent(false,f.get(o)));
                             }
                         }
-                        f.set(o, value);
+                        if(!f.isAnnotationPresent(Typing.class)) {
+                            try {
+                                value = map.get(name).softAs(f.getType());
+                                f.set(o, value);
+                            } catch (VSONException e) {
+                                loadImplicit(name, o, f, map);
+                            }
+                        }
+                        else{
+                            loadImplicit(name, o, f, map);
+                        }
                         for (AnnotatedElement listener : listeners) {
                             if(listener instanceof Method) {
                                 Method m = (Method) listener;
@@ -103,6 +119,62 @@ public class PersistenceHandler {
             }
         } catch (IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
+        }
+    }
+
+    @SuppressWarnings({"rawtypes","unchecked"})
+    private static void loadImplicit(String name, Object o, Field f, VSONMap map) throws IllegalAccessException {
+        Class<?> type = f.getType();
+        try {
+            Object internal = f.get(o);
+            Typing typing = f.getAnnotation(Typing.class);
+            if(typing == null) {
+                load(ClassAnalyzer.analyzeClass(internal instanceof Class<?> ? (Class)internal : internal.getClass()), map.get(name).softAs(VSONMap.class), internal, internal instanceof Class);
+            }
+            else{
+                Class<?>[] types = typing.value();
+                if(internal == null){
+                    internal = SerializationHandler.initialize(type);
+                    f.set(o,internal);
+                }
+                if(Map.class.isAssignableFrom(type)){
+                    VSONMap mapping = map.get(name).softAs(VSONMap.class);
+                    Class<?> keyType = types[0];
+                    Class<?> valueType = types[1];
+                    Map val = (Map) internal;
+                    val.clear();
+                    for (String key : mapping.keySet()) {
+                        Object k = SerializationHandler.deserialize(key,keyType);
+                        VSONValue vson = mapping.get(key);
+                        Object v = convertTo(valueType,vson);
+                        val.put(k,v);
+                    }
+                }
+                else if(Collection.class.isAssignableFrom(type)){
+                    VSONArray mapping = map.get(name).softAs(VSONArray.class);
+                    Class<?> valueType = types[0];
+                    Collection val = (Collection) internal;
+                    for (VSONValue vson : mapping) {
+                        Object v = convertTo(valueType,vson);
+                        val.add(v);
+                    }
+                }
+            }
+        } catch (VSONException e2){
+            throw new VSONException(type.getCanonicalName() + " does not serialize as a map and does not have a SerializationHandler.");
+        }
+    }
+
+    private static <V> V convertTo(Class<V> type, VSONValue vson){
+        try{
+            return vson.softAs(type);
+        }
+        catch (VSONException e){
+            Object v = SerializationHandler.initialize(type);
+            if(vson.isType(VSONMap.class)){
+                load(ClassAnalyzer.getManifest(type), vson.softAs(VSONMap.class), v, v instanceof Class<?>);
+            }
+            return (V) v;
         }
     }
 
@@ -208,6 +280,7 @@ public class PersistenceHandler {
         }
     }
 
+    @SuppressWarnings({"rawtypes","unchecked"})
     private static void save(ClassManifest<?> manifest, VSONMap out, Object o, boolean isStatic) {
         List<AnnotatedElement> members = manifest.getMembersWithAnnotation(Save.class);
         for (AnnotatedElement member : members) {
@@ -222,9 +295,26 @@ public class PersistenceHandler {
                     name = f.getName();
                 }
                 try {
-                    out.put(name,new VSONMapping(f.get(o),new AnnotationAttrInfo(save)));
+                    Object s = f.get(o);
+                    if (s != null && !ClassAnalyzer.analyzeClass(s instanceof Class ? (Class)s : s.getClass()).getMembersWithAnnotation(Save.class).isEmpty()) {
+                        saveImplicit(name, o, f, out, save);
+                    }
+                    else {
+                        out.put(name, new VSONMapping(s, new AnnotationAttrInfo(save)));
+                    }
                 } catch (IllegalAccessException ignored) {}
             }
+        }
+    }
+
+    private static void saveImplicit(String name, Object o, Field f, VSONMap out, Save info) throws IllegalAccessException {
+        Class<?> type = f.getType();
+        Object internal = f.get(o);
+        Typing typing = f.getAnnotation(Typing.class);
+        if(typing == null) {
+            VSONMap otherobj = new VSONMap();
+            out.put(name,new VSONMapping(otherobj,new AnnotationAttrInfo(info)));
+            save(ClassAnalyzer.getManifest(internal instanceof Class ? (Class<?>) internal : internal.getClass()), otherobj, internal, internal instanceof Class);
         }
     }
 

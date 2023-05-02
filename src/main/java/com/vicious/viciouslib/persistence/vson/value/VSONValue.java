@@ -1,17 +1,18 @@
 package com.vicious.viciouslib.persistence.vson.value;
 
+import com.vicious.viciouslib.persistence.storage.AttrInfo;
 import com.vicious.viciouslib.persistence.vson.SerializationHandler;
 import com.vicious.viciouslib.persistence.vson.writer.NamePair;
-import com.vicious.viciouslib.persistence.storage.AttrInfo;
 
 import java.util.List;
+import java.util.function.Supplier;
 
-public class VSONValue {
+public class VSONValue implements IHasDescription,IHasChildren, Supplier<Object> {
     protected Object value;
     protected String valueString;
 
     public AttrInfo info = AttrInfo.EMPTY;
-    public List<NamePair> children;
+    protected List<NamePair> children;
 
     public VSONValue(Object o) {
         this.value=o;
@@ -27,6 +28,11 @@ public class VSONValue {
 
     public boolean hasChildren(){
         return children != null && !children.isEmpty();
+    }
+
+    @Override
+    public List<NamePair> getChildren() {
+        return children;
     }
 
     /**
@@ -88,5 +94,24 @@ public class VSONValue {
         else{
             return "VSONValue{class = " + value.getClass().getName() + ", value = " + value + ", serialized form = " + valueString + "}";
         }
+    }
+
+    public boolean isType(Class<?> cls) {
+        if(value == null){
+            return false;
+        }
+        else{
+            return cls == value.getClass();
+        }
+    }
+
+    @Override
+    public boolean hasDescription() {
+        return info.hasDescription();
+    }
+
+    @Override
+    public String getDescription() {
+        return info.description();
     }
 }
