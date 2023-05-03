@@ -1,10 +1,8 @@
 package com.vicious.viciouslib.permission;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
-public class PermissionTree {
+public class PermissionTree implements Collection<String> {
     private boolean hasAll = false;
     private final PermissionNode root = new PermissionNode("root");
     public boolean hasPermission(String permission){
@@ -78,7 +76,7 @@ public class PermissionTree {
 
     public List<String> toPathList(String permission){
         if(permission == null || permission.isEmpty()){
-            return new ArrayList<>();
+            return List.of();
         }
         List<String> permissions = new LinkedList<>();
         StringBuilder val = new StringBuilder();
@@ -108,5 +106,128 @@ public class PermissionTree {
 
     public void revokeAll(){
         hasAll=false;
+    }
+
+    public List<String> getLeafPaths(){
+        List<String> paths = new ArrayList<>();
+        root.forEach((k,v)->{
+            getLeafPaths(paths,v,k);
+        });
+        return paths;
+    }
+    private void getLeafPaths(List<String> paths, PermissionNode current, String path){
+        if(current.size() > 0){
+            current.forEach((k,v)->{
+                getLeafPaths(paths, v,path+v.getName());
+            });
+        }
+        else{
+            paths.add(path);
+        }
+    }
+    public List<PermissionNode> getLeaves(){
+        List<PermissionNode> nodes = new ArrayList<>();
+        getLeaves(nodes,root);
+        return nodes;
+    }
+    private void getLeaves(List<PermissionNode> nodes, PermissionNode current){
+        if(current.size() > 0){
+            current.forEach((k,v)->{
+                getLeaves(nodes, v);
+            });
+        }
+        else{
+            nodes.add(current);
+        }
+    }
+
+    @Override
+    public int size() {
+        return getLeaves().size();
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return root.size() == 0;
+    }
+
+    @Override
+    public boolean contains(Object o) {
+        if(o instanceof String) {
+            return hasPermission((String) o);
+        }
+        else{
+            return false;
+        }
+    }
+
+    @Override
+    public Iterator<String> iterator() {
+        return getLeafPaths().iterator();
+    }
+
+    @Override
+    public Object[] toArray() {
+        return getLeafPaths().toArray();
+    }
+
+    @Override
+    public <T> T[] toArray(T[] a) {
+        return getLeafPaths().toArray(a);
+    }
+
+    @Override
+    public boolean add(String s) {
+        addPermission(s);
+        return true;
+    }
+
+    @Override
+    public boolean remove(Object o) {
+        if(o instanceof String){
+            removePermission((String) o);
+        }
+        else {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean containsAll(Collection<?> c) {
+        for (Object o : c) {
+            if(!contains(o)){
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public boolean addAll(Collection<? extends String> c) {
+        for (String s : c) {
+            add(s);
+        }
+        return true;
+    }
+
+    @Override
+    public boolean removeAll(Collection<?> c) {
+        boolean out = true;
+        for (Object o : c) {
+            if(!remove(o)){
+                out = false;
+            }
+        }
+        return out;
+    }
+
+    @Override
+    public boolean retainAll(Collection<?> c) {
+        List<String> strs = getLeafPaths();
+        boolean out = getLeafPaths().retainAll(c);
+        clear();
+        addAll(getLeafPaths());
+        return out;
     }
 }
