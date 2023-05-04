@@ -1,5 +1,6 @@
 package com.vicious.viciouslib.persistence.vson.value;
 
+import com.vicious.viciouslib.persistence.storage.AnnotationAttrInfo;
 import com.vicious.viciouslib.persistence.storage.AttrInfo;
 import com.vicious.viciouslib.persistence.vson.SerializationHandler;
 import com.vicious.viciouslib.persistence.vson.writer.NamePair;
@@ -113,5 +114,13 @@ public class VSONValue implements IHasDescription,IHasChildren, Supplier<Object>
     @Override
     public String getDescription() {
         return info.description();
+    }
+
+    public boolean isNull() {
+        return value == null;
+    }
+
+    public VSONMapping asMapping(AttrInfo info) {
+        return new VSONMapping(get(),info);
     }
 }

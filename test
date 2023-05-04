@@ -1,0 +1,55 @@
+vm = {
+	a = 23
+}
+va = [
+	65
+]
+bools = [
+	true
+	false
+	true
+]
+strs = {
+	3 = "c"
+	35 = "d6"
+}
+tumor1 = {
+	tumorSeverity = 10
+}
+tumors = [
+	{
+		tumorSeverity = 10
+	}
+	{
+		tumorSeverity = 10
+	}
+]
+cancers = {
+	asa = {
+		tumorSeverity = 10
+	}
+}
+ok = {
+	badness = 10
+	E-NAME = "FINE"
+}
+ms = [
+	{
+		badness = 10
+		E-NAME = "FINE"
+	}
+	{
+		badness = 120
+		E-NAME = "BAD"
+	}
+	{
+		badness = 100
+		E-NAME = "SUPERBAD"
+	}
+]
+msg = {
+	hi = {
+		badness = 120
+		E-NAME = "BAD"
+	}
+}
