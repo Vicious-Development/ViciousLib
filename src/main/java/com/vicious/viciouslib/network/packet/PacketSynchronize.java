@@ -1,7 +1,6 @@
 package com.vicious.viciouslib.network.packet;
 
 
-import com.vicious.viciouslib.network.IPacket;
 import com.vicious.viciouslib.network.Side;
 import com.vicious.viciouslib.network.annotation.Directionality;
 import com.vicious.viciouslib.network.annotation.Permission;

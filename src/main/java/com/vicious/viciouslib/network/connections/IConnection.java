@@ -1,4 +1,8 @@
-package com.vicious.viciouslib.network;
+package com.vicious.viciouslib.network.connections;
+
+import com.vicious.viciouslib.network.PacketChannel;
+import com.vicious.viciouslib.network.PacketLexicon;
+import com.vicious.viciouslib.network.packet.IPacket;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -11,6 +15,7 @@ public interface IConnection {
     DataOutputStream dos();
     PacketLexicon getLexicon();
 
+    void close();
     default <T extends IPacket> void receive(PacketChannel<T> channel) throws IOException{
         T packet = channel.createBase();
         packet.read(dis());

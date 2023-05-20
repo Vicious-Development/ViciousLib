@@ -2,6 +2,8 @@ package com.vicious.viciouslib.network;
 
 import com.vicious.viciouslib.network.annotation.Directionality;
 import com.vicious.viciouslib.network.annotation.Permission;
+import com.vicious.viciouslib.network.connections.IConnection;
+import com.vicious.viciouslib.network.packet.IPacket;
 
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
@@ -9,8 +11,8 @@ import java.util.function.Supplier;
 public class PacketChannel<T extends IPacket> {
     private final Class<T> packetClass;
     private final Supplier<T> constructor;
-    private final BiConsumer<T,IConnection> processor;
-    private int identifier = 0;
+    private final BiConsumer<T, IConnection> processor;
+    private int identifier;
 
     public PacketChannel(Class<T> packetClass, Supplier<T> constructor, BiConsumer<T,IConnection> processor, int id){
         this.packetClass=packetClass;

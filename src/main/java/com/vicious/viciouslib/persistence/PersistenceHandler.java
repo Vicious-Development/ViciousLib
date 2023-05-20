@@ -42,6 +42,11 @@ public class PersistenceHandler {
         if(map == null || map.isEmpty()){
             return;
         }
+        if(map.containsKey("META-MAP")){
+            if(o instanceof IPersistent.Metaful p) {
+                p.loadMeta(map.get("META-MAP").softAs(VSONMap.class));
+            }
+        }
         Throwable failure = DeepReflection.cycleAndExecute(cls,c->{
             ClassManifest<?> manifest = ClassAnalyzer.analyzeClass(c);
             try {
@@ -323,6 +328,9 @@ public class PersistenceHandler {
             }
             return null;
         });
+        if(o instanceof IPersistent.Metaful m){
+            out.put("META-MAP",m);
+        }
         if(failure != null){
             throw new RuntimeException("Failed to save a VSON object.",failure);
         }

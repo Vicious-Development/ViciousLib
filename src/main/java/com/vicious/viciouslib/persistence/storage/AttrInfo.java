@@ -29,4 +29,27 @@ public interface AttrInfo {
     default boolean hasDescription(){
         return description() != null && !description().isEmpty();
     }
+
+    class Named implements AttrInfo {
+        private final String name;
+
+        public Named(String key) {
+            name=key;
+        }
+
+        @Override
+        public String name() {
+            return name;
+        }
+
+        @Override
+        public String description() {
+            return null;
+        }
+
+        @Override
+        public String parent() {
+            return null;
+        }
+    }
 }
