@@ -1,4 +1,4 @@
-package com.vicious.viciouslib.network;
+package com.vicious.viciouslib.network.packet;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;

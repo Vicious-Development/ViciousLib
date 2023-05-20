@@ -6,6 +6,7 @@ import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,6 +17,29 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 
 public class FileUtil {
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    public static String resolve(String path){
+        String resolved = "";
+        String[] splits = path.split("/");
+        for (String split : splits) {
+            resolved+=split;
+            if(!resolved.contains(".")){
+                createDirectoryIfDNE(resolved);
+            }
+            else{
+                try {
+                    File f = new File(resolved);
+                    if(!f.exists()) {
+                        f.createNewFile();
+                    }
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            resolved += "/";
+        }
+        return path;
+    }
     public static Path createDirectoryIfDNE(String path){
         Path p = toPath(path);
         if(!Files.isDirectory(p)){

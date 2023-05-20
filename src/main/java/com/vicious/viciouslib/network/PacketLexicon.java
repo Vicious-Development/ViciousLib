@@ -1,5 +1,7 @@
 package com.vicious.viciouslib.network;
 
+import com.vicious.viciouslib.network.connections.IConnection;
+import com.vicious.viciouslib.network.packet.IPacket;
 import com.vicious.viciouslib.network.packet.PacketSynchronize;
 import com.vicious.viciouslib.util.BiMap;
 import com.vicious.viciouslib.util.ClassMap;
@@ -16,11 +18,9 @@ public class PacketLexicon {
     private Side side = Side.SERVER;
 
     //Ensure that PacketSynchronize always registers first.
-    public PacketLexicon(BiConsumer<PacketSynchronize,IConnection> synchronizationProcessor){
+    public PacketLexicon(BiConsumer<PacketSynchronize, IConnection> synchronizationProcessor){
         registerHandler(PacketSynchronize.class, PacketSynchronize::new,synchronizationProcessor);
     }
-
-
 
     public <T extends IPacket> void registerHandler(Class<T> packet, Supplier<T> constructor, BiConsumer<T,IConnection> processor){
         PacketChannel<T> channel = new PacketChannel<>(packet, constructor, processor, idChannels.size());
