@@ -89,7 +89,7 @@ public class PersistenceHandler {
                     if(map.containsKey(name)) {
                         for (AnnotatedElement listener : listeners) {
                             if(listener instanceof Method) {
-                                Method m = (Method) member;
+                                Method m = (Method) listener;
                                 if(!isStatic && Modifier.isStatic(m.getModifiers())){
                                     continue;
                                 }
