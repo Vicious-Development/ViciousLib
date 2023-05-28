@@ -17,7 +17,7 @@ import java.util.function.Predicate;
  *
  */
 public class DeepReflection {
-    private static Map<ClassLocation,Class<?>> classMap = new HashMap<>();
+    private static final Map<ClassLocation,Class<?>> classMap = new HashMap<>();
     public static Class<?> get(String name, String owner){
         return classMap.get(new ClassLocation(name,owner));
     }
