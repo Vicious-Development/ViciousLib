@@ -37,20 +37,20 @@ public class VSONWriter {
     }
 
     private void writeUnmappedValue(int tabs, Object value, StringBuilder builder) {
-        if(value instanceof VSONValue v){
-            value = v.get();
+        if(value instanceof VSONValue){
+            value = ((VSONValue) value).get();
         }
-        if(value instanceof VSONMap m) {
+        if(value instanceof VSONMap) {
             tab(tabs,builder);
             builder.append("{\n");
-            writeMap(tabs+1,m,builder);
+            writeMap(tabs+1, (VSONMap) value,builder);
             tab(tabs,builder);
             builder.append("}\n");
         }
-        else if(value instanceof VSONArray a){
+        else if(value instanceof VSONArray){
             tab(tabs,builder);
             builder.append("[\n");
-            writeArray(tabs+1,a,builder);
+            writeArray(tabs+1,(VSONArray)value,builder);
             tab(tabs,builder);
             builder.append("]\n");
         }
@@ -72,7 +72,8 @@ public class VSONWriter {
         for (Map.Entry<?, ?> entry : map.entrySet()) {
             Object value = entry.getValue();
             Object key = entry.getKey();
-            if(value instanceof VSONValue v) {
+            if(value instanceof VSONValue) {
+                VSONValue v = (VSONValue) value;
                 if (v.info != null) {
                     if (!v.info.hasParent()) {
                         writeValue(tabs, key instanceof String ? (String) key : SerializationHandler.serialize(key), v, builder);
@@ -88,7 +89,8 @@ public class VSONWriter {
     }
 
     protected void writeValue(int tabs, String name, Object value, StringBuilder builder) {
-        if(value instanceof IHasDescription descr) {
+        if(value instanceof IHasDescription) {
+            IHasDescription descr = (IHasDescription) value;
             if (descr.hasDescription()) {
                 String description = descr.getDescription();
                 if (description != null && !description.isEmpty()) {
@@ -111,17 +113,17 @@ public class VSONWriter {
         if(v instanceof VSONValue){
             v = ((VSONValue)v).get();
         }
-        if(v instanceof Map m) {
+        if(v instanceof Map) {
             tab(tabs,builder);
             builder.append(name).append(" = {\n");
-            writeMap(tabs+1,m,builder);
+            writeMap(tabs+1, (Map<?, ?>) v,builder);
             tab(tabs,builder);
             builder.append("}\n");
         }
-        else if(v instanceof Collection a){
+        else if(v instanceof Collection){
             tab(tabs,builder);
             builder.append(name).append(" = [\n");
-            writeArray(tabs+1,a,builder);
+            writeArray(tabs+1, (Collection<?>) v,builder);
             tab(tabs,builder);
             builder.append("]\n");
         }
@@ -131,7 +133,8 @@ public class VSONWriter {
             builder.append(SerializationHandler.serialize(v));
             builder.append('\n');
         }
-        if(value instanceof IHasChildren chld) {
+        if(value instanceof IHasChildren) {
+            IHasChildren chld = (IHasChildren) value;
             if (chld.hasChildren()) {
                 for (NamePair entry : chld.getChildren()) {
                     writeValue(tabs + 1, entry.getName(), entry.getValue(), builder);

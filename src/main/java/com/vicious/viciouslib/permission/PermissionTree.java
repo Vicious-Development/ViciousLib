@@ -76,7 +76,7 @@ public class PermissionTree implements Collection<String> {
 
     public List<String> toPathList(String permission){
         if(permission == null || permission.isEmpty()){
-            return List.of();
+            return new ArrayList<>();
         }
         List<String> permissions = new LinkedList<>();
         StringBuilder val = new StringBuilder();

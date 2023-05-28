@@ -23,8 +23,8 @@ public class ClientLexicon extends PacketLexicon {
         super(synchronizationProcessor);
         setSide(Side.CLIENT);
         this.registerHandler(PacketDisconnect.class, PacketDisconnect::new, (p, c) -> {
-            if (c instanceof CSConnection sc) {
-                sc.close();
+            if (c instanceof CSConnection) {
+                c.close();
             }
         });
     }

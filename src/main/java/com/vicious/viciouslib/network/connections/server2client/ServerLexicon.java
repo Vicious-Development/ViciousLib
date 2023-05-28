@@ -22,8 +22,8 @@ public class ServerLexicon extends PacketLexicon {
             }
         });
         this.registerHandler(PacketDisconnect.class, PacketDisconnect::new, (p, c) -> {
-            if (c instanceof S2CConnection sc) {
-                sc.close();
+            if (c instanceof S2CConnection) {
+                c.close();
             }
         });
     }
