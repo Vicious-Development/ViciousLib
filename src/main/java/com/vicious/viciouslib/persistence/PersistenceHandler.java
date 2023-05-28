@@ -329,7 +329,7 @@ public class PersistenceHandler {
             return null;
         });
         if(o instanceof IPersistent.Metaful m){
-            out.put("META-MAP",m);
+            out.put("META-MAP",m.getMetaMap());
         }
         if(failure != null){
             throw new RuntimeException("Failed to save a VSON object.",failure);

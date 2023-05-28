@@ -6,13 +6,19 @@ import java.util.List;
 import java.util.function.Predicate;
 
 public class FieldSearchContext extends SearchContext<Field>{
+
     @Override
     public boolean matches(Field in) {
         if(!super.matches(in)) return false;
+        if(superType != null){
+            if(!superType.isAssignableFrom(in.getType())){
+                return false;
+            }
+        }
         return in.getType().equals(type);
     }
     public FieldSearchContext type(Class<?> type){
-        this.type =type;
+        this.type = type;
         return this;
     }
 
@@ -39,6 +45,24 @@ public class FieldSearchContext extends SearchContext<Field>{
     @Override
     public FieldSearchContext before(SearchContext<Field> ctx) {
         super.before(ctx);
+        return this;
+    }
+
+    public FieldSearchContext superType(Class<?> type){
+        this.superType=type;
+        return this;
+    }
+
+
+    @Override
+    public FieldSearchContext forceAccess() {
+        super.forceAccess();
+        return this;
+    }
+
+    @Override
+    public FieldSearchContext required(boolean b) {
+        super.required(b);
         return this;
     }
 }
