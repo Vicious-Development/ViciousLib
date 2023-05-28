@@ -24,8 +24,14 @@ public class PacketLexicon {
 
     public <T extends IPacket> void registerHandler(Class<T> packet, Supplier<T> constructor, BiConsumer<T,IConnection> processor){
         PacketChannel<T> channel = new PacketChannel<>(packet, constructor, processor, idChannels.size());
-        channels.put(packet,channel);
-        idChannels.put(channel.getId(),channel);
+        if(!channels.containsKey(packet)) {
+            channels.put(packet, channel);
+            idChannels.put(channel.getId(), channel);
+        }
+        else{
+            channels.replace(packet,channel);
+            idChannels.replace(channel.getId(),channel);
+        }
     }
 
     public void sync(IConnection connection) throws IOException {
