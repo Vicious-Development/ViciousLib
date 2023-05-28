@@ -1,6 +1,5 @@
 package com.vicious.viciouslib.util.reflect.deep;
 
-import com.vicious.viciouslib.LoggerWrapper;
 import com.vicious.viciouslib.util.JarReader;
 import com.vicious.viciouslib.util.reflect.wrapper.ReflectiveField;
 import com.vicious.viciouslib.util.reflect.wrapper.ReflectiveMethodReturn;
@@ -8,10 +7,7 @@ import com.vicious.viciouslib.util.reflect.wrapper.ReflectiveMethodReturn;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URL;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -25,10 +21,7 @@ public class DeepReflection {
     public static Class<?> get(String name, String owner){
         return classMap.get(new ClassLocation(name,owner));
     }
-    public static void mapClasses(Enumeration<URL> roots, ClassLoader cloader) {
-        mapClasses(roots,cloader,false);
-    }
-    public static void mapClasses(Enumeration<URL> roots, ClassLoader cloader, boolean silentMode){
+    public static void mapClasses(Enumeration<URL> roots, ClassLoader cloader){
         while(roots.hasMoreElements()){
             JarReader.cycleJarEntries(roots.nextElement(), (e)->{
                 String name = e.getName();
@@ -41,7 +34,7 @@ public class DeepReflection {
                     char c = name.charAt(i);
                     if(c == '.'){
                         if(end){
-                           break;
+                            break;
                         }
                         else{
                             end = true;
@@ -55,9 +48,8 @@ public class DeepReflection {
                     ClassLocation cl = new ClassLocation(reverseSubstring(reverseIndexOf('.',name),name),owner);
                     classMap.put(cl,cls);
                 } catch (ClassNotFoundException classNotFoundException) {
-                    if(!silentMode) {
-                        LoggerWrapper.logError("Failed to load a class that exists: " + classNotFoundException.getMessage());
-                    }
+                    //LoggerWrapper.logError("Failed to load a class that exists.");
+                    classNotFoundException.printStackTrace();
                 }
             });
         }
@@ -105,16 +97,18 @@ public class DeepReflection {
         }
         return new ReflectiveMethodReturn(obtained.get(0));
     }
-    public static ReflectiveField getField(Object target, FieldSearchContext ctx) throws TotalFailureException {
+    public static List<Field> getFields(Object target, FieldSearchContext ctx) throws TotalFailureException {
         Class<?> cls = target instanceof Class<?> ? (Class<?>) target : target.getClass();
-        List<Field> obtained = cycleAndExecute(cls,(c)->{
-            List<Field> result = ctx.getAllMatchingWithin(c.getDeclaredFields());
-            return result.size() > 0 ? result : null;
-        });
-        if(obtained == null){
+        List<Field> obtained = collect(cls,(c)-> ctx.getAllMatchingWithin(c.getDeclaredFields()));
+        if(obtained.isEmpty() && ctx.isRequired()){
             throw new TotalFailureException("Failed to locate method using all forms of searching. Are you sure it exists?");
         }
-        else if(obtained.size() > 1){
+        return obtained;
+    }
+
+    public static ReflectiveField getField(Object target, FieldSearchContext ctx) throws TotalFailureException {
+        List<Field> obtained = getFields(target,ctx);
+        if(obtained.size() > 1){
             throw new BadSearchException("Found " + obtained.size() + " results for the method search executed: " + ctx);
         }
         return new ReflectiveField(obtained.get(0));
@@ -122,13 +116,10 @@ public class DeepReflection {
     /**
      * Does same as above but does not fail if multiple methods are found.
      */
-    public static List<Method> queryMethods(Object target, MethodSearchContext ctx) throws TotalFailureException{
+    public static List<Method> getMethods(Object target, MethodSearchContext ctx) throws TotalFailureException{
         Class<?> cls = target instanceof Class<?> ? (Class<?>) target : target.getClass();
-        List<Method> obtained = cycleAndExecute(cls,(c)->{
-            List<Method> result = ctx.getAllMatchingWithin(c.getDeclaredMethods());
-            return result.size() > 0 ? result : null;
-        });
-        if(obtained == null){
+        List<Method> obtained = collect(cls,(c)-> ctx.getAllMatchingWithin(c.getDeclaredMethods()));
+        if(obtained.isEmpty() && ctx.isRequired()){
             throw new TotalFailureException("Failed to locate method using all forms of searching. Are you sure it exists?");
         }
         return obtained;
@@ -205,6 +196,21 @@ public class DeepReflection {
         }
         //Try superclass
         return cycleAndExecute(cls.getSuperclass(),func);
+    }
+
+    /**
+     * Cycles through a class, its parents, its interfaces and their parents recursively.
+     */
+    public static <T> List<T> collect(Class<?> cls, Function<Class<?>,List<T>> func){
+        if(cls == null) return new ArrayList<>();
+        List<T> t = func.apply(cls);
+        //Try Interfaces
+        for (Class<?> itf : cls.getInterfaces()) {
+            t.addAll(collect(itf,func));
+        }
+        //Try superclass
+        t.addAll(collect(cls.getSuperclass(),func));
+        return t;
     }
 
     public static <T> T cycleAndExecute(Class<?> cls, Function<Class<?>,T> func, Predicate<Class<?>> predicate){

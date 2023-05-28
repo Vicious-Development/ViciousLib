@@ -36,6 +36,11 @@ public class MethodSearchContext extends SearchContext<Method>{
                 if (exceptions[i] != inExceptions[i]) return false;
             }
         }
+        if(superType != null){
+            if(!superType.isAssignableFrom(in.getReturnType())){
+                return false;
+            }
+        }
         return true;
     }
 

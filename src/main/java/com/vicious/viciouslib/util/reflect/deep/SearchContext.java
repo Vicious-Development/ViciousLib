@@ -12,8 +12,25 @@ public abstract class SearchContext<T extends AccessibleObject & Member> {
     public SearchContext<T> before;
     public String name;
     public Class<?> type;
+    public Class<?> superType;
     public Class<? extends Annotation>[] annotations;
     public List<Predicate<Integer>> modifierPredicators;
+    protected boolean setAccessible;
+    private boolean required = true;
+
+    public SearchContext<T> forceAccess() {
+        this.setAccessible = true;
+        return this;
+    }
+
+    public SearchContext<T> superType(Class<?> type){
+        this.superType=type;
+        return this;
+    }
+
+    public boolean shouldForceAccessible() {
+        return setAccessible;
+    }
 
     public SearchContext(){
     }
@@ -55,6 +72,9 @@ public abstract class SearchContext<T extends AccessibleObject & Member> {
                 if(!modifierPredicator.test(inMod)) return false;
             }
         }
+        if(shouldForceAccessible()){
+            in.setAccessible(true);
+        }
         return true;
     }
     public List<T> getAllMatchingWithin(T[] objs){
@@ -75,5 +95,14 @@ public abstract class SearchContext<T extends AccessibleObject & Member> {
             }
         }
         return options;
+    }
+
+    public SearchContext<T> required(boolean b) {
+        this.required = b;
+        return this;
+    }
+
+    public boolean isRequired() {
+        return required;
     }
 }
