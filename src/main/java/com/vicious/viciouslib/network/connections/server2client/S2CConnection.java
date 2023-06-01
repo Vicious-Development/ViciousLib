@@ -93,8 +93,8 @@ public class S2CConnection implements IConnection, IHasPermissions {
     }
 
     public boolean hasPermission(String permission) {
-        if (this.authorization instanceof IHasPermissions p) {
-            return permission == null || p.hasPermission(permission);
+        if (this.authorization instanceof IHasPermissions) {
+            return permission == null || ((IHasPermissions) this.authorization).hasPermission(permission);
         }
         else{
             return false;
