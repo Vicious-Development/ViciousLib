@@ -43,8 +43,8 @@ public class PersistenceHandler {
             return;
         }
         if(map.containsKey("META-MAP")){
-            if(o instanceof IPersistent.Metaful p) {
-                p.loadMeta(map.get("META-MAP").softAs(VSONMap.class));
+            if(o instanceof IPersistent.Metaful) {
+                ((IPersistent.Metaful) o).loadMeta(map.get("META-MAP").softAs(VSONMap.class));
             }
         }
         Throwable failure = DeepReflection.cycleAndExecute(cls,c->{
@@ -76,7 +76,8 @@ public class PersistenceHandler {
         List<AnnotatedElement> listeners = manifest.getMembersWithAnnotation(OnChanged.class);
         try {
             for (AnnotatedElement member : members) {
-                if(member instanceof Field f) {
+                if(member instanceof Field) {
+                    Field f = (Field) member;
                     if(isInvalid(f, isStatic)){
                         continue;
                     }
@@ -87,7 +88,8 @@ public class PersistenceHandler {
                     }
                     if(map.containsKey(name)) {
                         for (AnnotatedElement listener : listeners) {
-                            if(listener instanceof Method m) {
+                            if(listener instanceof Method) {
+                                Method m = (Method) listener;
                                 if(!isStatic && Modifier.isStatic(m.getModifiers())){
                                     continue;
                                 }
@@ -99,7 +101,8 @@ public class PersistenceHandler {
                         }
                         load(name,o, f, map);
                         for (AnnotatedElement listener : listeners) {
-                            if(listener instanceof Method m) {
+                            if(listener instanceof Method) {
+                                Method m = (Method) listener;
                                 if(!isStatic && Modifier.isStatic(m.getModifiers())){
                                     continue;
                                 }
@@ -268,7 +271,8 @@ public class PersistenceHandler {
         List<AnnotatedElement> persistentPath = manifest.getMembersWithAnnotation(PersistentPath.class);
         List<Field> valid = new ArrayList<>();
         for (AnnotatedElement annotatedElement : persistentPath) {
-            if(annotatedElement instanceof Field f){
+            if(annotatedElement instanceof Field){
+                Field f = (Field) annotatedElement;
                 if(isStatic && Modifier.isStatic(f.getModifiers())){
                     valid.add(f);
                 }
@@ -328,8 +332,8 @@ public class PersistenceHandler {
             }
             return null;
         });
-        if(o instanceof IPersistent.Metaful m){
-            out.put("META-MAP",m.getMetaMap());
+        if(o instanceof IPersistent.Metaful){
+            out.put("META-MAP", ((IPersistent.Metaful) o).getMetaMap());
         }
         if(failure != null){
             throw new RuntimeException("Failed to save a VSON object.",failure);
@@ -345,7 +349,8 @@ public class PersistenceHandler {
     private static void save(ClassManifest<?> manifest, VSONMap out, Object o, boolean isStatic) {
         List<AnnotatedElement> members = manifest.getMembersWithAnnotation(Save.class);
         for (AnnotatedElement member : members) {
-            if(member instanceof Field f){
+            if(member instanceof Field){
+                Field f = (Field) member;
                 if(isInvalid(f, isStatic)){
                     continue;
                 }
