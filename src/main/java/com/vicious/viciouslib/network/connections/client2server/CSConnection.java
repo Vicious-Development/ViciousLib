@@ -1,7 +1,12 @@
 package com.vicious.viciouslib.network.connections.client2server;
 
+import com.vicious.viciouslib.jarloader.ViciousEventBroadcaster;
+import com.vicious.viciouslib.network.ConnectionEvent;
+import com.vicious.viciouslib.network.PacketChannel;
+import com.vicious.viciouslib.network.Side;
 import com.vicious.viciouslib.network.connections.IConnection;
 import com.vicious.viciouslib.network.PacketLexicon;
+import com.vicious.viciouslib.network.packet.PacketDisconnect;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -22,6 +27,7 @@ public class CSConnection implements IConnection {
         } catch (Exception ignored) {
             disconnect();
         }
+        ViciousEventBroadcaster.post(new ConnectionEvent.Opened(this));
         executor.submit(this::receivingThread);
     }
 
@@ -35,7 +41,8 @@ public class CSConnection implements IConnection {
 
     public void disconnect(){
         try {
-            serverSocket.close();
+            send(new PacketDisconnect());
+            close();
         } catch (Exception ignored) {}
     }
 
@@ -63,9 +70,15 @@ public class CSConnection implements IConnection {
     public void close() {
         try {
             this.serverSocket.close();
+            ViciousEventBroadcaster.post(new ConnectionEvent.Closed(this));
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public boolean shouldProcess(PacketChannel<?> channel) {
+        return channel.sendSide(Side.CLIENT);
     }
 
     public boolean isConnected() {

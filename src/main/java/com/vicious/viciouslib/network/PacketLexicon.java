@@ -1,5 +1,6 @@
 package com.vicious.viciouslib.network;
 
+import com.vicious.viciouslib.jarloader.ViciousEventBroadcaster;
 import com.vicious.viciouslib.network.connections.IConnection;
 import com.vicious.viciouslib.network.packet.IPacket;
 import com.vicious.viciouslib.network.packet.PacketSynchronize;
@@ -23,12 +24,13 @@ public class PacketLexicon {
     }
 
     public <T extends IPacket> void registerHandler(Class<T> packet, Supplier<T> constructor, BiConsumer<T,IConnection> processor){
-        PacketChannel<T> channel = new PacketChannel<>(packet, constructor, processor, idChannels.size());
         if(!channels.containsKey(packet)) {
+            PacketChannel<T> channel = new PacketChannel<>(packet, constructor, processor, idChannels.size());
             channels.put(packet, channel);
             idChannels.put(channel.getId(), channel);
         }
         else{
+            PacketChannel<T> channel = new PacketChannel<>(packet, constructor, processor, channels.get(packet).getId());
             channels.replace(packet,channel);
             idChannels.replace(channel.getId(),channel);
         }

@@ -1,10 +1,11 @@
 package com.vicious.viciouslib.network.connections.server2client;
 
 import com.vicious.viciouslib.LoggerWrapper;
+import com.vicious.viciouslib.jarloader.ViciousEventBroadcaster;
 import com.vicious.viciouslib.network.*;
 import com.vicious.viciouslib.network.annotation.Permission;
-import com.vicious.viciouslib.network.connections.IConnectable;
 import com.vicious.viciouslib.network.connections.IConnection;
+import com.vicious.viciouslib.network.connections.Authorization;
 import com.vicious.viciouslib.network.packet.IPacket;
 import com.vicious.viciouslib.network.packet.IllegalPacketException;
 import com.vicious.viciouslib.network.packet.PacketDisconnect;
@@ -23,11 +24,11 @@ public class S2CConnection implements IConnection, IHasPermissions {
     private final Socket clientSocket;
     private DataInputStream dis;
     private DataOutputStream dos;
-    private IConnectable user;
+    private Authorization authorization;
 
     public S2CConnection(Socket clientSocket) throws IOException {
         this.clientSocket = clientSocket;
-
+        authorization = new Authorization.Anonymous(this);
         try {
             this.dis = new DataInputStream(clientSocket.getInputStream());
             this.dos = new DataOutputStream(clientSocket.getOutputStream());
@@ -36,11 +37,25 @@ public class S2CConnection implements IConnection, IHasPermissions {
         }
 
         LoggerWrapper.logInfo("Established connection with: " + this.ip());
+        ServerLexicon.get().sync(this);
+        ViciousEventBroadcaster.post(new ConnectionEvent.Opened(this));
         executor.submit(this::receivingThread);
     }
 
     public InetAddress ip() {
         return this.clientSocket.getInetAddress();
+    }
+
+    public void setAuthorization(Authorization auth){
+        this.authorization=auth;
+    }
+
+    public Authorization getAuthorization() {
+        return authorization;
+    }
+
+    public Socket getSocket() {
+        return clientSocket;
     }
 
     public void receivingThread() {
@@ -49,6 +64,7 @@ public class S2CConnection implements IConnection, IHasPermissions {
         } catch (Exception var2) {
             this.internalServerError(var2);
         }
+        disconnect();
         LoggerWrapper.logInfo("Closed connection with " + this.ip());
     }
 
@@ -76,17 +92,9 @@ public class S2CConnection implements IConnection, IHasPermissions {
 
     }
 
-    public IConnectable getUser() {
-        return this.user;
-    }
-
-    public void setUser(IConnectable user) {
-        this.user = user;
-    }
-
     public boolean hasPermission(String permission) {
-        if (this.user instanceof IHasPermissions) {
-            return permission == null || ((IHasPermissions) this.user).hasPermission(permission);
+        if (this.authorization instanceof IHasPermissions p) {
+            return permission == null || p.hasPermission(permission);
         }
         else{
             return false;
@@ -128,6 +136,7 @@ public class S2CConnection implements IConnection, IHasPermissions {
     public void close() {
         try {
             this.clientSocket.close();
+            ViciousEventBroadcaster.post(new ConnectionEvent.Closed(this));
         } catch (IOException e) {
             e.printStackTrace();
         }
