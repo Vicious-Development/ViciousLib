@@ -118,7 +118,7 @@ public class PermissionTree implements Collection<String> {
     private void getLeafPaths(List<String> paths, PermissionNode current, String path){
         if(current.size() > 0){
             current.forEach((k,v)->{
-                getLeafPaths(paths, v,path+v.getName());
+                getLeafPaths(paths, v,path+"."+v.getName());
             });
         }
         else{
