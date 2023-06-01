@@ -1,11 +1,12 @@
 package com.vicious.viciouslib.util;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
 
-public class BiMap<V1,V2> {
+public class BiMap<V1,V2> implements Map<V1,V2>{
     private final Map<V1,V2> keyValue = new HashMap<>();
     private final Map<V2,V1> valueKey = new HashMap<>();
 
@@ -17,15 +18,36 @@ public class BiMap<V1,V2> {
     public boolean isEmpty() {
         return keyValue.isEmpty();
     }
-    public boolean containsKey(V1 v){
-        return keyValue.containsKey(v);
+
+    @Override
+    public boolean containsKey(Object key) {
+        return keyValue.containsKey(key);
     }
-    public boolean containsValue(V2 v){
-        return valueKey.containsKey(v);
+
+    @Override
+    public boolean containsValue(Object value) {
+        return valueKey.containsKey(value);
     }
-    public void put(V1 v1, V2 v2){
-       keyValue.put(v1,v2);
+
+    @Override
+    public V2 get(Object key) {
+        return null;
+    }
+
+    public V2 put(V1 v1, V2 v2){
+       V2 out = keyValue.put(v1,v2);
        valueKey.put(v2,v1);
+       return out;
+    }
+
+    @Override
+    public V2 remove(Object key) {
+        return null;
+    }
+
+    @Override
+    public void putAll(Map<? extends V1, ? extends V2> m) {
+
     }
 
     public boolean removeByKey(V1 v1) {
@@ -51,10 +73,21 @@ public class BiMap<V1,V2> {
     public Set<V1> keySet(){
         return keyValue.keySet();
     }
+
+    @Override
+    public Collection<V2> values() {
+        return null;
+    }
+
+    @Override
+    public Set<Entry<V1, V2>> entrySet() {
+        return null;
+    }
+
     public Set<V2> valueSet(){
         return valueKey.keySet();
     }
-    public void forEach(BiConsumer<V1,V2> consumer){
+    public void forEach(BiConsumer<? super V1,? super V2> consumer){
         keyValue.forEach(consumer);
     }
 
