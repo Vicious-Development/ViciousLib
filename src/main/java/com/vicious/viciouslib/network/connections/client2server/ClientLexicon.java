@@ -24,7 +24,7 @@ public class ClientLexicon extends PacketLexicon {
 
     public ClientLexicon() {
         super((p,c)->{
-            getInstance().processSynchronizationPacket(p);
+            getInstance().process(p,c);
         });
         setSide(Side.CLIENT);
         this.registerHandler(PacketDisconnect.class, PacketDisconnect::new, (p, c) -> {

@@ -10,8 +10,8 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-@Directionality(Side.CLIENT)
-@Permission("viciouslib.allowsync")
+//Allow sending to server but do not handle.
+@Directionality({Side.CLIENT,Side.SERVER})
 public class PacketSynchronize implements IPacket {
     private final BiMap<Integer, String> classMap;
 
