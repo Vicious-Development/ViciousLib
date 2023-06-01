@@ -31,7 +31,6 @@ public class S2CConnection implements IConnection, IHasPermissions {
         try {
             this.dis = new DataInputStream(clientSocket.getInputStream());
             this.dos = new DataOutputStream(clientSocket.getOutputStream());
-            this.user.setConnection(this);
         } catch (IOException e) {
             LoggerWrapper.logError("Encountered error establishing data stream", e);
         }
