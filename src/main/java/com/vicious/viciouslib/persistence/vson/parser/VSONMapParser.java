@@ -52,7 +52,7 @@ public class VSONMapParser extends VSONParser {
                 }
                 return;
             }
-            else if(c == '='){
+            else if(c == '=' && !rv){
                 rv = true;
             }
             else if(c == '\n' || c == ','){

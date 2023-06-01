@@ -31,7 +31,7 @@ public class BiMap<V1,V2> implements Map<V1,V2>{
 
     @Override
     public V2 get(Object key) {
-        return null;
+        return keyValue.get(key);
     }
 
     public V2 put(V1 v1, V2 v2){
@@ -42,12 +42,16 @@ public class BiMap<V1,V2> implements Map<V1,V2>{
 
     @Override
     public V2 remove(Object key) {
-        return null;
+        V2 out = keyValue.remove(key);
+        if(out != null){
+            valueKey.remove(out);
+        }
+        return out;
     }
 
     @Override
     public void putAll(Map<? extends V1, ? extends V2> m) {
-
+        m.forEach(this::put);
     }
 
     public boolean removeByKey(V1 v1) {
@@ -76,12 +80,12 @@ public class BiMap<V1,V2> implements Map<V1,V2>{
 
     @Override
     public Collection<V2> values() {
-        return null;
+        return keyValue.values();
     }
 
     @Override
     public Set<Entry<V1, V2>> entrySet() {
-        return null;
+        return keyValue.entrySet();
     }
 
     public Set<V2> valueSet(){
