@@ -46,9 +46,6 @@ public interface IConnection {
                     if (shouldProcess(channel)) {
                         receive(channel);
                     }
-                    else{
-
-                    }
                 }
             }
         }

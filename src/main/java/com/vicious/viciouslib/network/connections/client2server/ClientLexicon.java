@@ -1,5 +1,7 @@
 package com.vicious.viciouslib.network.connections.client2server;
 
+import com.vicious.viciouslib.jarloader.ViciousEventBroadcaster;
+import com.vicious.viciouslib.network.ConnectionEvent;
 import com.vicious.viciouslib.network.connections.IConnection;
 import com.vicious.viciouslib.network.PacketLexicon;
 import com.vicious.viciouslib.network.Side;
@@ -13,6 +15,7 @@ public class ClientLexicon extends PacketLexicon {
 
     private void process(PacketSynchronize packetSynchronize, IConnection connection) {
         processSynchronizationPacket(packetSynchronize);
+        ViciousEventBroadcaster.post(new ConnectionEvent.Sychronized(connection));
     }
 
     public static ClientLexicon getInstance() {
@@ -25,9 +28,7 @@ public class ClientLexicon extends PacketLexicon {
         });
         setSide(Side.CLIENT);
         this.registerHandler(PacketDisconnect.class, PacketDisconnect::new, (p, c) -> {
-            if (c instanceof CSConnection sc) {
-                sc.close();
-            }
+            c.close();
         });
     }
 }
