@@ -9,7 +9,7 @@ import com.vicious.viciouslib.network.packet.PacketSynchronize;
 import java.util.function.BiConsumer;
 
 public class ClientLexicon extends PacketLexicon {
-    private static final ClientLexicon instance = new ClientLexicon(getInstance()::process);
+    private static final ClientLexicon instance = new ClientLexicon();
 
     private void process(PacketSynchronize packetSynchronize, IConnection connection) {
         processSynchronizationPacket(packetSynchronize);
@@ -19,8 +19,8 @@ public class ClientLexicon extends PacketLexicon {
         return instance;
     }
 
-    public ClientLexicon(BiConsumer<PacketSynchronize, IConnection> synchronizationProcessor) {
-        super(synchronizationProcessor);
+    public ClientLexicon() {
+        super(getInstance()::process);
         setSide(Side.CLIENT);
         this.registerHandler(PacketDisconnect.class, PacketDisconnect::new, (p, c) -> {
             if (c instanceof CSConnection) {
