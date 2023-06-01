@@ -38,9 +38,11 @@ public interface IPersistent {
         }
 
         default void loadMeta(VSONMap vsonMap){
-            VSONMap meta = getMetaMap();
-            meta.clear();
-            meta.putAll(vsonMap);
+            if(vsonMap != null) {
+                VSONMap meta = getMetaMap();
+                meta.clear();
+                meta.putAll(vsonMap);
+            }
         }
     }
 }
