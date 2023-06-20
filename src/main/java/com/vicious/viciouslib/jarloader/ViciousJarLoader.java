@@ -15,6 +15,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 public class ViciousJarLoader {
+    private LoaderStage stage = LoaderStage.DORMANT;
     private static ViciousJarLoader instance;
     public static ViciousJarLoader getInstance(){
         if(instance == null) instance = new ViciousJarLoader();
@@ -32,6 +33,7 @@ public class ViciousJarLoader {
      * Do this to initialize all main classes of instances scanned.
      */
     public void sendInitialization(){
+        stage = LoaderStage.INITIALIZING;
         InitializationEvent IE = new InitializationEvent(EventPhase.BEFORE);
         IE.post();
         for (Object o : IE.getReturned()) {
@@ -40,6 +42,7 @@ public class ViciousJarLoader {
                 instances.get(main).setMainInstance(o);
             }
         }
+        stage = LoaderStage.INITIALIZED;
     }
 
     public boolean isViciousJar(File file) throws IOException {
@@ -96,6 +99,7 @@ public class ViciousJarLoader {
     }
 
     public void scanDirectoryForJars(String path) throws Exception {
+        stage = LoaderStage.LOADING;
         File f = new File(path);
         if(f.exists() && f.isDirectory()){
             for (File file : f.listFiles()) {
@@ -106,5 +110,10 @@ public class ViciousJarLoader {
                 }
             }
         }
+        stage = LoaderStage.LOADED;
+    }
+
+    public LoaderStage getStage() {
+        return stage;
     }
 }

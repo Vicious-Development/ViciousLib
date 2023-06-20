@@ -17,10 +17,10 @@ import com.vicious.viciouslib.util.reflect.ClassManifest;
 import com.vicious.viciouslib.util.reflect.deep.DeepReflection;
 
 import javax.annotation.Nonnull;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -320,7 +320,11 @@ public class PersistenceHandler {
         String path = getPath(o);
         //Don't load already present objects if the file is load only.
         if(isLoadOnly(cls) && new File(path).exists()){
-            return;
+            try(FileInputStream fis = new FileInputStream(path)){
+                if(fis.available() > 0){
+                    return;
+                }
+            } catch (IOException ignored) {}
         }
         VSONMap out = new VSONMap();
         Throwable failure = DeepReflection.cycleAndExecute(cls,c->{

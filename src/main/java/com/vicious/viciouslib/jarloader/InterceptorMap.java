@@ -19,6 +19,7 @@ public class InterceptorMap {
         this.interceptorMapping.computeIfAbsent(instance.getInterceptorObject(), t->new HashSet<>()).add(instance);
     }
 
+    @SuppressWarnings({"rawtypes","unchecked"})
     public boolean send(Object object) {
         Class<?> cls = object.getClass();
         Set<EventInterceptorInstance> interceptors = eventTypeMapping.get(cls);
