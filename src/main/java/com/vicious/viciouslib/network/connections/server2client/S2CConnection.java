@@ -14,12 +14,18 @@ import com.vicious.viciouslib.permission.IHasPermissions;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class S2CConnection implements IConnection, IHasPermissions {
+    public static Set<S2CConnection> connections = new HashSet<>();
     private static final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final Socket clientSocket;
     private DataInputStream dis;
@@ -27,6 +33,7 @@ public class S2CConnection implements IConnection, IHasPermissions {
     private Authorization authorization;
 
     public S2CConnection(Socket clientSocket) throws IOException {
+        connections.add(this);
         this.clientSocket = clientSocket;
         authorization = new Authorization.Anonymous(this);
         try {
@@ -84,8 +91,10 @@ public class S2CConnection implements IConnection, IHasPermissions {
 
     public void disconnect() {
         try {
-            this.send(new PacketDisconnect());
-            this.close();
+            if(!isClosed()) {
+                this.send(new PacketDisconnect());
+                this.close();
+            }
         } catch (IOException var2) {
             LoggerWrapper.logError("Encountered an exception while disconnecting", var2);
         }
@@ -135,10 +144,23 @@ public class S2CConnection implements IConnection, IHasPermissions {
 
     public void close() {
         try {
-            this.clientSocket.close();
+            if(!this.clientSocket.isClosed()) {
+                this.clientSocket.close();
+            }
+            connections.remove(this);
             ViciousEventBroadcaster.post(new ConnectionEvent.Closed(this));
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public int hashCode() {
+        return ip().hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return ip().equals(obj);
     }
 }
