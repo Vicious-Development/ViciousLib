@@ -33,8 +33,8 @@ public class S2CConnection implements IConnection, IHasPermissions {
     private Authorization authorization;
 
     public S2CConnection(Socket clientSocket) throws IOException {
-        connections.add(this);
         this.clientSocket = clientSocket;
+        connections.add(this);
         authorization = new Authorization.Anonymous(this);
         try {
             this.dis = new DataInputStream(clientSocket.getInputStream());
