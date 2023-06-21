@@ -11,7 +11,10 @@ import com.vicious.viciouslib.network.packet.PacketDisconnect;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.Socket;
+import java.util.Arrays;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 
 public class CSConnection implements IConnection {
@@ -41,8 +44,10 @@ public class CSConnection implements IConnection {
 
     public void disconnect(){
         try {
-            send(new PacketDisconnect());
-            close();
+            if(!isClosed()) {
+                this.send(new PacketDisconnect());
+                this.close();
+            }
         } catch (Exception ignored) {}
     }
 
@@ -69,7 +74,9 @@ public class CSConnection implements IConnection {
     @Override
     public void close() {
         try {
-            this.serverSocket.close();
+            if(!this.serverSocket.isClosed()) {
+                this.serverSocket.close();
+            }
             ViciousEventBroadcaster.post(new ConnectionEvent.Closed(this));
         } catch (IOException e) {
             e.printStackTrace();
@@ -83,5 +90,15 @@ public class CSConnection implements IConnection {
 
     public boolean isConnected() {
         return this.serverSocket.isConnected();
+    }
+
+    public InetAddress ip(){
+        return serverSocket.getInetAddress();
+    }
+
+    @Override
+    public int hashCode() {
+        InetAddress ip = ip();
+        return Objects.hash(ip.getHostAddress(), Arrays.hashCode(ip.getAddress()),ip.getCanonicalHostName());
     }
 }

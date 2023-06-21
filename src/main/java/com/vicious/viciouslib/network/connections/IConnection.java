@@ -7,9 +7,11 @@ import com.vicious.viciouslib.network.packet.IPacket;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.util.HashMap;
+import java.util.Map;
 
 public interface IConnection {
-
     boolean isClosed();
     DataInputStream dis();
     DataOutputStream dos();
