@@ -19,7 +19,7 @@ public class InterceptorMap {
         this.interceptorMapping.computeIfAbsent(instance.getInterceptorObject(), t->new HashSet<>()).add(instance);
     }
 
-    @SuppressWarnings({"rawtypes","unchecked"})
+    @SuppressWarnings({"unchecked","rawtypes"})
     public boolean send(Object object) {
         Class<?> cls = object.getClass();
         Set<EventInterceptorInstance> interceptors = eventTypeMapping.get(cls);
@@ -27,8 +27,8 @@ public class InterceptorMap {
             for (EventInterceptorInstance interceptor : interceptors) {
                 try {
                     Object o = interceptor.intercept(object);
-                    if(o != null && object instanceof VEventReturns returns){
-                        returns.returnObject(o);
+                    if(o != null && object instanceof VEventReturns){
+                        ((VEventReturns) object).returnObject(o);
                     }
                 } catch (Exception e) {
                     LoggerWrapper.logError("An event interceptor threw an exception: " + e.getMessage());
@@ -36,8 +36,8 @@ public class InterceptorMap {
                 }
             }
         }
-        if(object instanceof VEvent v){
-            return !v.isCanceled();
+        if(object instanceof VEvent){
+            return !((VEvent) object).isCanceled();
         }
         else return true;
     }
