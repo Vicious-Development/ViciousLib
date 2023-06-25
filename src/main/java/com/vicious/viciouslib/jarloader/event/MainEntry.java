@@ -4,6 +4,7 @@ import com.vicious.viciouslib.aunotamation.annotation.Extends;
 import com.vicious.viciouslib.aunotamation.annotation.ModifiedWith;
 import com.vicious.viciouslib.aunotamation.annotation.Parameters;
 import com.vicious.viciouslib.aunotamation.annotation.RequiredType;
+import org.checkerframework.checker.units.qual.C;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -16,7 +17,7 @@ import java.lang.reflect.Modifier;
 
 @ModifiedWith(Modifier.PUBLIC)
 @Parameters(InitializationEvent.class)
-@Extends(GlobalInterceptor.class)
 @RequiredType(Object.class)
 public @interface MainEntry {
+    String[] loadAfter() default {};
 }

@@ -8,6 +8,9 @@ import com.vicious.viciouslib.jarloader.event.InitializationEvent;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.*;
@@ -33,14 +36,33 @@ public class ViciousJarLoader {
      * Do this to initialize all main classes of instances scanned.
      */
     public void sendInitialization(){
+        while (stage == LoaderStage.LOADING){}
         stage = LoaderStage.INITIALIZING;
-        InitializationEvent IE = new InitializationEvent(EventPhase.BEFORE);
-        IE.post();
-        for (Object o : IE.getReturned()) {
-            Class<?> main = o.getClass();
-            if(instances.containsKey(main)){
-                instances.get(main).setMainInstance(o);
+        Set<JarInstance<?>> instances = new HashSet<>(getJarInstances());
+        while(!instances.isEmpty()) {
+            Set<JarInstance<?>> loaded = new HashSet<>();
+            l1: for (JarInstance<?> jarInstance : instances) {
+                for (String cls : jarInstance.getLoadAfter()) {
+                    try {
+                        Class<?> mc = Class.forName(cls,false,viciousLoader);
+                        if (this.instances.get(mc).getMainInstance() == null) {
+                            continue l1;
+                        }
+                    } catch (ClassNotFoundException e){
+                        throw new RuntimeException(jarInstance.getMain() + " is missing required dependency containing " + cls);
+                    }
+                }
+                try {
+                    Class<?> main = jarInstance.getMain();
+                    LoggerWrapper.logInfo("Initializing " + main.getName());
+                    Constructor<?> cons = main.getConstructor(InitializationEvent.class);
+                    jarInstance.setMainInstance(cons.newInstance(new InitializationEvent(false)));
+                    loaded.add(jarInstance);
+                } catch (Exception e) {
+                    throw new RuntimeException("Failed to initialize a main class.", e);
+                }
             }
+            instances.removeAll(loaded);
         }
         stage = LoaderStage.INITIALIZED;
     }
@@ -51,6 +73,7 @@ public class ViciousJarLoader {
         zip.close();
         return jarInfo != null;
     }
+
     /**
      * Gets the main class for the jar file by locating 'mainentry.info'
      * Mainentry only contains a single line with the canonical class name for the main class.
@@ -67,11 +90,7 @@ public class ViciousJarLoader {
         String mainClassName = scan.nextLine();
         scan.close();
         zip.close();
-        URLClassLoader child = new URLClassLoader(
-                new URL[] {file.toURI().toURL()},
-                ViciousJarLoader.class.getClassLoader()
-        );
-        return Class.forName(mainClassName,true,child);
+        return Class.forName(mainClassName,true,viciousLoader);
     }
 
     /**
@@ -82,6 +101,7 @@ public class ViciousJarLoader {
     public JarInstance<?> loadJar(File file) throws IOException, ClassNotFoundException {
         Class<?> main = getMainClass(file);
         if(main != null) {
+            LoggerWrapper.logInfo("Loaded main class " + main.getName());
             if(!instances.containsKey(main)) {
                 JarInstance<?> ji = new JarInstance<>(file, main);
                 instances.put(main, ji);
@@ -98,17 +118,31 @@ public class ViciousJarLoader {
         return null;
     }
 
+    public static ViciousClassLoader viciousLoader;
+
+    static {
+        viciousLoader = new ViciousClassLoader(ViciousClassLoader.class.getClassLoader());
+    }
+
     public void scanDirectoryForJars(String path) throws Exception {
         stage = LoaderStage.LOADING;
         File f = new File(path);
+        List<File> vjs = new ArrayList<>();
         if(f.exists() && f.isDirectory()){
             for (File file : f.listFiles()) {
                 if(file.getName().endsWith(".jar")){
                     if(isViciousJar(file)){
-                        loadJar(file);
+                        vjs.add(file);
                     }
                 }
             }
+        }
+        for (File vj : vjs) {
+            LoggerWrapper.logInfo("Adding " + vj.getName() + " to the classpath.");
+            viciousLoader.addURL(vj.toURI().toURL());
+        }
+        for (File vj : vjs) {
+            loadJar(vj);
         }
         stage = LoaderStage.LOADED;
     }
