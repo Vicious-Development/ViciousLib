@@ -34,9 +34,9 @@ public class JarInstance<T> {
             throw new RuntimeException(mainClass.getName() + " is missing an @MainEntry constructor");
         }
         else{
-            if(elements.get(0) instanceof Constructor<?> c){
-                this.constructor=c;
-                this.anno = c.getAnnotation(MainEntry.class);
+            if(elements.get(0) instanceof Constructor<?>){
+                this.constructor= (Constructor<?>) elements.get(0);
+                this.anno = this.constructor.getAnnotation(MainEntry.class);
             }
             else{
                 throw new RuntimeException(mainClass.getName() + " has an element marked with @MainEntry, but it isn't a constructor");

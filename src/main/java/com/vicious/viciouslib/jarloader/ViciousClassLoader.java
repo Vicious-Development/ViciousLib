@@ -21,14 +21,6 @@ public class ViciousClassLoader extends URLClassLoader {
         super(urls, parent, factory);
     }
 
-    public ViciousClassLoader(String name, URL[] urls, ClassLoader parent) {
-        super(name, urls, parent);
-    }
-
-    public ViciousClassLoader(String name, URL[] urls, ClassLoader parent, URLStreamHandlerFactory factory) {
-        super(name, urls, parent, factory);
-    }
-
     @Override
     public void addURL(URL url) {
         super.addURL(url);
