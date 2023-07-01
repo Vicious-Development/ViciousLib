@@ -14,6 +14,7 @@ import com.vicious.viciouslib.permission.IHasPermissions;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -28,16 +29,19 @@ public class S2CConnection implements IConnection, IHasPermissions {
     public static Set<S2CConnection> connections = new HashSet<>();
     private static final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final Socket clientSocket;
+    private InputStream stream;
     private DataInputStream dis;
     private DataOutputStream dos;
     private Authorization authorization;
+    private boolean closed = false;
 
     public S2CConnection(Socket clientSocket) throws IOException {
         this.clientSocket = clientSocket;
         connections.add(this);
         authorization = new Authorization.Anonymous(this);
         try {
-            this.dis = new DataInputStream(clientSocket.getInputStream());
+            this.stream=clientSocket.getInputStream();
+            this.dis = new DataInputStream(stream);
             this.dos = new DataOutputStream(clientSocket.getOutputStream());
         } catch (IOException e) {
             LoggerWrapper.logError("Encountered error establishing data stream", e);
@@ -66,11 +70,8 @@ public class S2CConnection implements IConnection, IHasPermissions {
     }
 
     public void receivingThread() {
-        try {
-            IConnection.super.receivingThread();
-        } catch (Exception var2) {
-            this.internalServerError(var2);
-        }
+        IConnection.super.receivingThread();
+        closed = true;
         disconnect();
         LoggerWrapper.logInfo("Closed connection with " + this.ip());
     }
@@ -111,7 +112,7 @@ public class S2CConnection implements IConnection, IHasPermissions {
     }
 
     public boolean isClosed() {
-        return this.clientSocket.isClosed();
+        return this.clientSocket.isClosed() || closed;
     }
 
     public DataInputStream dis() {
@@ -120,6 +121,11 @@ public class S2CConnection implements IConnection, IHasPermissions {
 
     public DataOutputStream dos() {
         return this.dos;
+    }
+
+    @Override
+    public InputStream stream() {
+        return stream;
     }
 
     public PacketLexicon getLexicon() {

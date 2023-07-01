@@ -27,12 +27,15 @@ public class PermissionTree implements Collection<String> {
         if(node == null){
             return false;
         }
-        node = node.get(path.remove(0));
-        if(node == null){
-            return false;
-        }
-        else if(!path.isEmpty()){
-            return hasPermission(path,node);
+        if(!path.isEmpty()) {
+            node = node.get(path.remove(0));
+            if (node == null) {
+                return false;
+            } else if (!path.isEmpty()) {
+                return hasPermission(path, node);
+            } else {
+                return true;
+            }
         }
         else{
             return true;

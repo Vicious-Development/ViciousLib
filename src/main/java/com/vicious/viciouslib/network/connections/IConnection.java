@@ -4,9 +4,7 @@ import com.vicious.viciouslib.network.PacketChannel;
 import com.vicious.viciouslib.network.PacketLexicon;
 import com.vicious.viciouslib.network.packet.IPacket;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
@@ -15,9 +13,21 @@ public interface IConnection {
     boolean isClosed();
     DataInputStream dis();
     DataOutputStream dos();
+    InputStream stream();
     PacketLexicon getLexicon();
 
     void close();
+
+    default int readID() throws IOException {
+        int b0 = stream().read();
+        int b1 = stream().read();
+        int b2 = stream().read();
+        int b3 = stream().read();
+        if((b0 | b1 | b2 | b3) < 0){
+            throw new EOFException();
+        }
+        return ((b0 << 24) + (b1 << 16) + (b2 << 8) + b3);
+    }
     default <T extends IPacket> void receive(PacketChannel<T> channel) throws IOException{
         T packet = channel.createBase();
         packet.read(dis());
@@ -39,16 +49,18 @@ public interface IConnection {
         }
     }
 
-    default void receivingThread() throws IOException {
+    default void receivingThread() {
         while(!isClosed()){
-            if(dis().available() > 0){
-                int id = dis().readInt();
+            try {
+                int id = readID();
                 PacketChannel<?> channel = getLexicon().getChannel(id);
-                if(channel != null) {
+                if (channel != null) {
                     if (shouldProcess(channel)) {
                         receive(channel);
                     }
                 }
+            } catch (Exception e){
+                break;
             }
         }
     }

@@ -11,6 +11,7 @@ import com.vicious.viciouslib.network.packet.PacketDisconnect;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.util.Arrays;
@@ -19,13 +20,16 @@ import java.util.concurrent.ExecutorService;
 
 public class CSConnection implements IConnection {
     private final Socket serverSocket;
+    private InputStream stream;
     private DataInputStream dis;
     private DataOutputStream dos;
+    private boolean closed = false;
 
     public CSConnection(Socket serverSocket, ExecutorService executor) {
         this.serverSocket = serverSocket;
         try {
-            this.dis = new DataInputStream(serverSocket.getInputStream());
+            this.stream=serverSocket.getInputStream();
+            this.dis = new DataInputStream(stream);
             this.dos = new DataOutputStream(serverSocket.getOutputStream());
         } catch (Exception ignored) {
             disconnect();
@@ -35,11 +39,9 @@ public class CSConnection implements IConnection {
     }
 
     public void receivingThread() {
-        try {
-            IConnection.super.receivingThread();
-        } catch (Exception ignored) {
-            disconnect();
-        }
+        IConnection.super.receivingThread();
+        closed=true;
+        disconnect();
     }
 
     public void disconnect(){
@@ -53,7 +55,7 @@ public class CSConnection implements IConnection {
 
     @Override
     public boolean isClosed() {
-        return serverSocket.isClosed();
+        return serverSocket.isClosed() || closed;
     }
 
     @Override
@@ -64,6 +66,11 @@ public class CSConnection implements IConnection {
     @Override
     public DataOutputStream dos() {
         return dos;
+    }
+
+    @Override
+    public InputStream stream() {
+        return stream;
     }
 
     @Override
