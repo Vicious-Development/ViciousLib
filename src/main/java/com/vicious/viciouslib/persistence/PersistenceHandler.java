@@ -242,7 +242,7 @@ public class PersistenceHandler {
     }
 
     @Nonnull
-    private static String getPath(Object o){
+    public static String getPath(Object o){
         boolean isStatic = o instanceof Class<?>;
         Class<?> cls = isStatic ? (Class<?>) o : o.getClass();
         AtomicReference<RuntimeException> thrown = new AtomicReference<>();
@@ -265,9 +265,7 @@ public class PersistenceHandler {
         }
     }
 
-
-
-    public static String getPath(ClassManifest<?> manifest, Object o, boolean isStatic){
+    private static String getPath(ClassManifest<?> manifest, Object o, boolean isStatic){
         List<AnnotatedElement> persistentPath = manifest.getMembersWithAnnotation(PersistentPath.class);
         List<Field> valid = new ArrayList<>();
         for (AnnotatedElement annotatedElement : persistentPath) {
