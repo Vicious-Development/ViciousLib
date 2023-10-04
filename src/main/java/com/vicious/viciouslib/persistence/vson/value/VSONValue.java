@@ -51,6 +51,9 @@ public class VSONValue implements IHasDescription,IHasChildren, Supplier<Object>
         try{
             return as(cls);
         } catch (ClassCastException e){
+            if(cls.isEnum()){
+                return (V)Enum.valueOf((Class)cls,valueString);
+            }
             if(value instanceof Number && Number.class.isAssignableFrom(cls)){
                 return (V) asN((Class<Number>)cls);
             }

@@ -324,6 +324,18 @@ public class PersistenceHandler {
                 }
             } catch (IOException ignored) {}
         }
+        VSONMap out = toMap(o);
+        try {
+            saveVSON(path, out);
+        } catch (FileNotFoundException ignored){}
+        catch (IOException e){
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static VSONMap toMap(Object o){
+        boolean isStatic = o instanceof Class<?>;
+        Class<?> cls = isStatic ? (Class<?>) o : o.getClass();
         VSONMap out = new VSONMap();
         Throwable failure = DeepReflection.cycleAndExecute(cls,c->{
             ClassManifest<?> manifest = ClassAnalyzer.analyzeClass(c);
@@ -340,12 +352,7 @@ public class PersistenceHandler {
         if(failure != null){
             throw new RuntimeException("Failed to save a VSON object.",failure);
         }
-        try {
-            saveVSON(path, out);
-        } catch (FileNotFoundException ignored){}
-        catch (IOException e){
-            throw new RuntimeException(e);
-        }
+        return out;
     }
 
     private static void save(ClassManifest<?> manifest, VSONMap out, Object o, boolean isStatic) {
