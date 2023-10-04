@@ -1,13 +1,18 @@
 package com.vicious.viciouslib.util.reflect.deep;
 
+import com.vicious.viciouslib.util.ClassAnalyzer;
 import com.vicious.viciouslib.util.JarReader;
+import com.vicious.viciouslib.util.reflect.ClassManifest;
 import com.vicious.viciouslib.util.reflect.wrapper.ReflectiveField;
 import com.vicious.viciouslib.util.reflect.wrapper.ReflectiveMethodReturn;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
