@@ -63,7 +63,11 @@ public class VSONArrayParser extends VSONParser {
         for (int i = 0; i < value.length(); i++) {
             type.append(value.charAt(i));
         }
-        arr.add(new VSONValue(SerializationHandler.deserialize(type.string,type.type),type.string));
+        try {
+            arr.add(new VSONValue(SerializationHandler.deserialize(type.string, type.type), type.string));
+        } catch (Throwable t){
+            arr.add(new VSONValue(type.string, type.string));
+        }
     }
 
     public VSONArray getArray(){
