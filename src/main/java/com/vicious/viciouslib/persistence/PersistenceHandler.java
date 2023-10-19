@@ -9,6 +9,7 @@ import com.vicious.viciouslib.persistence.vson.SerializationHandler;
 import com.vicious.viciouslib.persistence.vson.VSONArray;
 import com.vicious.viciouslib.persistence.vson.VSONMap;
 import com.vicious.viciouslib.persistence.vson.parser.VSONMapParser;
+import com.vicious.viciouslib.persistence.vson.value.VSONException;
 import com.vicious.viciouslib.persistence.vson.value.VSONMapping;
 import com.vicious.viciouslib.persistence.vson.value.VSONValue;
 import com.vicious.viciouslib.persistence.vson.writer.VSONWriter;
@@ -75,50 +76,51 @@ public class PersistenceHandler {
         }
         List<AnnotatedElement> members = manifest.getMembersWithAnnotation(Save.class);
         List<AnnotatedElement> listeners = manifest.getMembersWithAnnotation(OnChanged.class);
-        try {
-            for (AnnotatedElement member : members) {
-                if(member instanceof Field) {
+        for (AnnotatedElement member : members) {
+            if (member instanceof Field) {
+                try {
                     Field f = (Field) member;
-                    if(isInvalid(f, isStatic)){
+                    if (isInvalid(f, isStatic)) {
                         continue;
                     }
                     Save save = member.getAnnotation(Save.class);
                     String name = save.value();
-                    if(name.isEmpty()){
+                    if (name.isEmpty()) {
                         name = f.getName();
                     }
-                    if(map.containsKey(name)) {
+                    if (map.containsKey(name)) {
                         for (AnnotatedElement listener : listeners) {
-                            if(listener instanceof Method) {
+                            if (listener instanceof Method) {
                                 Method m = (Method) listener;
-                                if(!isStatic && Modifier.isStatic(m.getModifiers())){
+                                if (!isStatic && Modifier.isStatic(m.getModifiers())) {
                                     continue;
                                 }
-                                if(isStatic && !Modifier.isStatic(m.getModifiers())){
+                                if (isStatic && !Modifier.isStatic(m.getModifiers())) {
                                     continue;
                                 }
-                                m.invoke(o,new AttributeModificationEvent(false,f.get(o)));
+                                m.invoke(o, new AttributeModificationEvent(false, f.get(o)));
                             }
                         }
-                        load(name,o, f, map);
+                        load(name, o, f, map);
                         for (AnnotatedElement listener : listeners) {
-                            if(listener instanceof Method) {
+                            if (listener instanceof Method) {
                                 Method m = (Method) listener;
-                                if(!isStatic && Modifier.isStatic(m.getModifiers())){
+                                if (!isStatic && Modifier.isStatic(m.getModifiers())) {
                                     continue;
                                 }
-                                if(isStatic && !Modifier.isStatic(m.getModifiers())){
+                                if (isStatic && !Modifier.isStatic(m.getModifiers())) {
                                     continue;
                                 }
-                                m.invoke(o,new AttributeModificationEvent(true,f.get(o)));
+                                m.invoke(o, new AttributeModificationEvent(true, f.get(o)));
                             }
                         }
                     }
+                } catch (Throwable t) {
+                    throw new VSONException("Could not load field " + ((Field) member).getName() + " in class " + manifest.getTargetClass(), t);
                 }
             }
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            e.printStackTrace();
         }
+
     }
 
     /**
@@ -317,9 +319,6 @@ public class PersistenceHandler {
         Class<?> cls = getClassOf(o);
         String path = getPath(o);
         //Don't load already present objects if the file is load only.
-        if(!new File(path).exists()){
-            FileUtil.resolve(path);
-        }
         if(isLoadOnly(cls) && new File(path).exists()){
             try(FileInputStream fis = new FileInputStream(path)){
                 if(fis.available() > 0){
@@ -362,16 +361,20 @@ public class PersistenceHandler {
         List<AnnotatedElement> members = manifest.getMembersWithAnnotation(Save.class);
         for (AnnotatedElement member : members) {
             if(member instanceof Field){
-                Field f = (Field) member;
-                if(isInvalid(f, isStatic)){
-                    continue;
+                try {
+                    Field f = (Field) member;
+                    if (isInvalid(f, isStatic)) {
+                        continue;
+                    }
+                    Save save = member.getAnnotation(Save.class);
+                    String name = save.value();
+                    if (name.isEmpty()) {
+                        name = f.getName();
+                    }
+                    saveField(f, o, out, name, save);
+                } catch (Throwable t){
+                    throw new VSONException("Could not save field " + ((Field) member).getName() + " in class " + manifest.getTargetClass() + " caused by ",t);
                 }
-                Save save = member.getAnnotation(Save.class);
-                String name = save.value();
-                if(name.isEmpty()){
-                    name = f.getName();
-                }
-                saveField(f,o,out,name,save);
             }
         }
     }
