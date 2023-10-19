@@ -13,6 +13,7 @@ import com.vicious.viciouslib.persistence.vson.value.VSONMapping;
 import com.vicious.viciouslib.persistence.vson.value.VSONValue;
 import com.vicious.viciouslib.persistence.vson.writer.VSONWriter;
 import com.vicious.viciouslib.util.ClassAnalyzer;
+import com.vicious.viciouslib.util.FileUtil;
 import com.vicious.viciouslib.util.reflect.ClassManifest;
 import com.vicious.viciouslib.util.reflect.deep.DeepReflection;
 
@@ -317,6 +318,9 @@ public class PersistenceHandler {
         Class<?> cls = getClassOf(o);
         String path = getPath(o);
         //Don't load already present objects if the file is load only.
+        if(!new File(path).exists()){
+            FileUtil.resolve(path);
+        }
         if(isLoadOnly(cls) && new File(path).exists()){
             try(FileInputStream fis = new FileInputStream(path)){
                 if(fis.available() > 0){
