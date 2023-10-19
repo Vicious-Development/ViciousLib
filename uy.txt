@@ -1,0 +1,51 @@
+period = 1452
+stage = GRACE
+paused = true
+teams = {
+	lo = {
+		spawn = {
+			x = 6.4293956955236045
+			y = 2625.0
+		}
+		isDead = false
+		leader = 8464f653-766d-4330-b8c9-b6da5c0429ab
+		players = [
+			8464f653-766d-4330-b8c9-b6da5c0429ab
+			ae36bd79-cdcf-4421-b07a-4cbb4d5936f5
+		]
+	}
+	h = {
+		spawn = {
+			x = 3.2146978477618022
+			y = 2625.0
+		}
+		isDead = false
+		leader = d8910a1e-b768-441b-a08e-2d25622b58c4
+		players = [
+			d8910a1e-b768-441b-a08e-2d25622b58c4
+			fcc23aac-ec22-4079-853e-ceb0edbb9cfe
+		]
+	}
+}
+playerData = {
+	8464f653-766d-4330-b8c9-b6da5c0429ab = {
+		frozen = false
+		state = ALIVE
+		team = "lo"
+	}
+	d8910a1e-b768-441b-a08e-2d25622b58c4 = {
+		frozen = false
+		state = ALIVE
+		team = "h"
+	}
+	ae36bd79-cdcf-4421-b07a-4cbb4d5936f5 = {
+		frozen = false
+		state = ALIVE
+		team = "lo"
+	}
+	fcc23aac-ec22-4079-853e-ceb0edbb9cfe = {
+		frozen = false
+		state = ALIVE
+		team = "h"
+	}
+}
