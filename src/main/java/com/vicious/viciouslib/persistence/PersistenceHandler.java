@@ -38,7 +38,7 @@ public class PersistenceHandler {
             return;
         }
         boolean isStatic = o instanceof Class<?>;
-        Class<?> cls = isStatic ? (Class<?>) o : o.getClass();
+        Class<?> cls = getClassOf(o);
         if(map == null || map.isEmpty()){
             return;
         }
@@ -244,7 +244,7 @@ public class PersistenceHandler {
     @Nonnull
     public static String getPath(Object o){
         boolean isStatic = o instanceof Class<?>;
-        Class<?> cls = isStatic ? (Class<?>) o : o.getClass();
+        Class<?> cls = getClassOf(o);
         AtomicReference<RuntimeException> thrown = new AtomicReference<>();
         String path = DeepReflection.cycleAndExecute(cls,c->{
             ClassManifest<?> manifest = ClassAnalyzer.analyzeClass(c);
@@ -314,7 +314,7 @@ public class PersistenceHandler {
 
     public static void save(Object o){
         boolean isStatic = o instanceof Class<?>;
-        Class<?> cls = isStatic ? (Class<?>) o : o.getClass();
+        Class<?> cls = getClassOf(o);
         String path = getPath(o);
         //Don't load already present objects if the file is load only.
         if(isLoadOnly(cls) && new File(path).exists()){
@@ -335,7 +335,7 @@ public class PersistenceHandler {
 
     public static VSONMap toMap(Object o){
         boolean isStatic = o instanceof Class<?>;
-        Class<?> cls = isStatic ? (Class<?>) o : o.getClass();
+        Class<?> cls = getClassOf(o);
         VSONMap out = new VSONMap();
         Throwable failure = DeepReflection.cycleAndExecute(cls,c->{
             ClassManifest<?> manifest = ClassAnalyzer.analyzeClass(c);
@@ -436,7 +436,7 @@ public class PersistenceHandler {
         boolean isStatic = value instanceof Class;
         if(savable){
             VSONMap m = new VSONMap();
-            save(ClassAnalyzer.getManifest(isStatic ? (Class<?>) value : value.getClass()), m, value, isStatic);
+            save(ClassAnalyzer.getManifest(getClassOf(value)), m, value, isStatic);
             if(value instanceof Enum){
                 if(m.containsKey("E-NAME")){
                     throw new InvalidAnnotationException("Savable Enum class is using a reserved data name 'E-NAME' this is reserved for the persistence handler, rename your data field.");
@@ -460,6 +460,18 @@ public class PersistenceHandler {
             return parser.getMap();
         } catch (FileNotFoundException ignored) {
             return null;
+        }
+    }
+
+    public static Class<?> getClassOf(Object value){
+        if(value instanceof Class<?>){
+            return (Class<?>) value;
+        }
+        else if(value instanceof Enum<?>){
+            return ((Enum<?>) value).getDeclaringClass();
+        }
+        else{
+            return value.getClass();
         }
     }
 
