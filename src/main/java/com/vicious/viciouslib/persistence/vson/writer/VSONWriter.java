@@ -6,6 +6,7 @@ import com.vicious.viciouslib.persistence.vson.VSONMap;
 import com.vicious.viciouslib.persistence.vson.value.IHasChildren;
 import com.vicious.viciouslib.persistence.vson.value.IHasDescription;
 import com.vicious.viciouslib.persistence.vson.value.VSONValue;
+import com.vicious.viciouslib.util.FileUtil;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -16,7 +17,7 @@ import java.util.Map;
 public class VSONWriter {
     private File file;
     public VSONWriter(String file){
-        this.file=new File(file);
+        this.file=new File(FileUtil.resolve(file));
     }
     public void write(VSONMap map) throws IOException {
         FileWriter writer = new FileWriter(file);
