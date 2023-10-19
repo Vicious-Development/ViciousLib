@@ -5,6 +5,7 @@ import com.vicious.viciouslib.util.ClassMap;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -34,6 +35,7 @@ public class SerializationHandler {
         registerDeserializer(Boolean.class, SerializationHandler::booleanForm);
         registerDeserializer(boolean.class, SerializationHandler::booleanForm);
         registerHandler(String.class,(str)->str, s-> "\"" + s + "\"");
+        registerHandler(UUID.class,UUID::fromString,UUID::toString);
     }
     private static boolean booleanForm(String str) {
         return str.contains("t") || str.contains("T");
@@ -73,11 +75,7 @@ public class SerializationHandler {
             return null;
         }
         if(functs.containsKey(cls)) {
-            try {
-                return (V) functs.get(cls).deserialize(str);
-            } catch (Exception e){
-                e.printStackTrace();
-            }
+            return (V) functs.get(cls).deserialize(str);
         }
         return null;
     }

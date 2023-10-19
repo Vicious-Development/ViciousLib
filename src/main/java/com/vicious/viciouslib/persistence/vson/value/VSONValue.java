@@ -61,7 +61,7 @@ public class VSONValue implements IHasDescription,IHasChildren, Supplier<Object>
             if(v == null){
                 throw new VSONException("Completely failed to parse a VSON value.");
             }
-            value =v;
+            value = v;
             return v;
         }
     }

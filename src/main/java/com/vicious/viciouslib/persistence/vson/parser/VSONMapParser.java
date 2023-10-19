@@ -83,7 +83,11 @@ public class VSONMapParser extends VSONParser {
         for (int i = 0; i < value.length(); i++) {
             type.append(value.charAt(i));
         }
-        map.put(name,new VSONMapping(SerializationHandler.deserialize(type.string,type.type),type.string));
+        try {
+            map.put(name, new VSONMapping(SerializationHandler.deserialize(type.string, type.type), type.string));
+        } catch (Throwable t){
+            map.put(name, new VSONMapping(type.string, type.string));
+        }
     }
 
     public VSONMap getMap(){

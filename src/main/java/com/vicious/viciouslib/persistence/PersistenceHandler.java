@@ -138,7 +138,7 @@ public class PersistenceHandler {
             //Contexts.
             boolean isStatic = type == Class.class;
             ClassManifest<?> manif = ClassAnalyzer.analyzeClass(isStatic ? (Class)internal : type);
-            boolean isSavable = !manif.getMembersWithAnnotation(Save.class).isEmpty();
+            boolean isSavable = !f.isAnnotationPresent(Unmapped.class) && (f.isAnnotationPresent(Mapped.class) || !manif.getMembersWithAnnotation(Save.class).isEmpty());
             //If the object is a persistent object load from the map.
             if(isSavable){
                 VSONMap mapRepr = map.get(name).softAs(VSONMap.class);
@@ -314,7 +314,6 @@ public class PersistenceHandler {
     }
 
     public static void save(Object o){
-        boolean isStatic = o instanceof Class<?>;
         Class<?> cls = getClassOf(o);
         String path = getPath(o);
         //Don't load already present objects if the file is load only.
@@ -381,7 +380,9 @@ public class PersistenceHandler {
     private static void saveField(Field f, Object o, VSONMap out, String name, Save save){
         try {
             Object internal = f.get(o);
-            if (internal != null && !ClassAnalyzer.analyzeClass(internal instanceof Class ? (Class)internal : internal.getClass()).getMembersWithAnnotation(Save.class).isEmpty()) {
+            ClassManifest<?> manif = ClassAnalyzer.analyzeClass(getClassOf(internal));
+            boolean mappable = !f.isAnnotationPresent(Unmapped.class) && (f.isAnnotationPresent(Mapped.class) || !manif.getMembersWithAnnotation(Save.class).isEmpty());
+            if (internal != null && mappable) {
                 out.put(name,map(internal,true).asMapping(new AnnotationAttrInfo(save)));
             }
             else if (f.isAnnotationPresent(Typing.class)){
