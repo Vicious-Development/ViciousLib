@@ -1,6 +1,8 @@
 package com.vicious.viciouslib.persistence.vson;
 
+import com.vicious.viciouslib.persistence.KeyToClass;
 import com.vicious.viciouslib.persistence.vson.value.VSONException;
+import com.vicious.viciouslib.persistence.vson.value.VSONMapping;
 import com.vicious.viciouslib.util.ClassMap;
 
 import java.lang.reflect.Constructor;

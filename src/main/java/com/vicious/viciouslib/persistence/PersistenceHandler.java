@@ -1,5 +1,6 @@
 package com.vicious.viciouslib.persistence;
 
+import com.vicious.viciouslib.LoggerWrapper;
 import com.vicious.viciouslib.aunotamation.InvalidAnnotationException;
 import com.vicious.viciouslib.persistence.storage.AnnotationAttrInfo;
 import com.vicious.viciouslib.persistence.storage.AttrInfo;
@@ -14,15 +15,12 @@ import com.vicious.viciouslib.persistence.vson.value.VSONMapping;
 import com.vicious.viciouslib.persistence.vson.value.VSONValue;
 import com.vicious.viciouslib.persistence.vson.writer.VSONWriter;
 import com.vicious.viciouslib.util.ClassAnalyzer;
-import com.vicious.viciouslib.util.FileUtil;
 import com.vicious.viciouslib.util.reflect.ClassManifest;
 import com.vicious.viciouslib.util.reflect.deep.DeepReflection;
 
 import javax.annotation.Nonnull;
 import java.io.*;
 import java.lang.reflect.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -30,6 +28,8 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class PersistenceHandler {
+    public static final String SPECIAL_TYPE_KEY = "VSONTYPE";
+
     public static void load(Object o){
         VSONMap map = loadVSON(getPath(o));
         load(o,map);
@@ -179,6 +179,8 @@ public class PersistenceHandler {
         }
     }
 
+
+
     @SuppressWarnings({"rawtypes","unchecked"})
     private static void unmapMap(Class<?>[] types, VSONMap map, String name, Object internal){
         VSONMap mapping = map.get(name).softAs(VSONMap.class);
@@ -221,21 +223,28 @@ public class PersistenceHandler {
         if(vson.isNull()){
             return null;
         }
-        if(savable){
+        if(vson.isType(VSONMap.class)) {
             V out = null;
-            if(vson.isType(VSONMap.class)){
-                VSONMap m = vson.softAs(VSONMap.class);
-                boolean isEnum = m.containsKey("E-NAME");
-                if(isEnum){
-                    out = (V) Enum.valueOf((Class<? extends Enum>)type,m.remove("E-NAME").softAs(String.class));
+            VSONMap m = vson.softAs(VSONMap.class);
+            if (m.containsKey(SPECIAL_TYPE_KEY)) {
+                try {
+                    out = (V) KeyToClass.newInstance(m.get(SPECIAL_TYPE_KEY).softAs(String.class));
+                    load(ClassAnalyzer.analyzeClass(getClassOf(out)), vson.softAs(VSONMap.class), out, out instanceof Class<?>);
+                } catch (ClassNotFoundException e) {
+                    LoggerWrapper.logError(m.get(SPECIAL_TYPE_KEY) + " is no longer registered. Will not init object from persistent info. May crash or lose data.");
                 }
-                else{
+            }
+            else if (savable) {
+
+                if (m.containsKey("E-NAME")) {
+                    out = (V) Enum.valueOf((Class<? extends Enum>) type, m.remove("E-NAME").softAs(String.class));
+                } else {
                     out = SerializationHandler.initialize(type);
                 }
                 load(ClassAnalyzer.getManifest(type), vson.softAs(VSONMap.class), out, out instanceof Class<?>);
-            }
-            if(out == null){
-                out = SerializationHandler.initialize(type);
+                if (out == null) {
+                    out = SerializationHandler.initialize(type);
+                }
             }
             return out;
         }
@@ -386,7 +395,7 @@ public class PersistenceHandler {
             ClassManifest<?> manif = ClassAnalyzer.analyzeClass(getClassOf(internal));
             boolean mappable = !f.isAnnotationPresent(Unmapped.class) && (f.isAnnotationPresent(Mapped.class) || !manif.getMembersWithAnnotation(Save.class).isEmpty());
             if (internal != null && mappable) {
-                out.put(name,map(internal,true).asMapping(new AnnotationAttrInfo(save)));
+                out.put(name,map(internal,f.getType(),true).asMapping(new AnnotationAttrInfo(save)));
             }
             else if (f.isAnnotationPresent(Typing.class)){
                 saveHardTyped(f,internal,out,save,name);
@@ -423,7 +432,7 @@ public class PersistenceHandler {
         Map val = (Map) internal;
         for (Object key : val.keySet()) {
             String k = key instanceof String ? (String) key : SerializationHandler.serialize(key);
-            otherobj.put(k,map(val.get(key),isImplicit).asMapping(AttrInfo.EMPTY));
+            otherobj.put(k,map(val.get(key),valType,isImplicit).asMapping(AttrInfo.EMPTY));
         }
         return new VSONValue(otherobj);
     }
@@ -435,16 +444,27 @@ public class PersistenceHandler {
         VSONArray otherobj = new VSONArray();
         Collection val = (Collection) internal;
         for (Object value : val) {
-            otherobj.add(map(value,isImplicit));
+            otherobj.add(map(value,valType,isImplicit));
         }
         return new VSONValue(otherobj);
     }
 
-    private static VSONValue map(Object value, boolean savable){
+    private static VSONValue map(Object value, Class<?> valType, boolean savable){
         boolean isStatic = value instanceof Class;
+        if(valType != getClassOf(value)){
+            try {
+                VSONMap m = new VSONMap();
+                save(ClassAnalyzer.analyzeClass(getClassOf(value)), m, value, isStatic);
+                String key = KeyToClass.get(getClassOf(value));
+                m.put(SPECIAL_TYPE_KEY,key);
+                return new VSONValue(m);
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException("No key for class " + getClassOf(value) + ". Register using KeyToClass.register.");
+            }
+        }
         if(savable){
             VSONMap m = new VSONMap();
-            save(ClassAnalyzer.getManifest(getClassOf(value)), m, value, isStatic);
+            save(ClassAnalyzer.analyzeClass(getClassOf(value)), m, value, isStatic);
             if(value instanceof Enum){
                 if(m.containsKey("E-NAME")){
                     throw new InvalidAnnotationException("Savable Enum class is using a reserved data name 'E-NAME' this is reserved for the persistence handler, rename your data field.");
