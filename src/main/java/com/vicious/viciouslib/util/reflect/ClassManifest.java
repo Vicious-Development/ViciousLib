@@ -1,6 +1,7 @@
 package com.vicious.viciouslib.util.reflect;
 
 import com.vicious.viciouslib.aunotamation.Aunotamation;
+import com.vicious.viciouslib.persistence.storage.aunotamations.Save;
 import com.vicious.viciouslib.util.ClassAnalyzer;
 import com.vicious.viciouslib.util.reflect.deep.DeepReflection;
 
@@ -103,7 +104,7 @@ public class ClassManifest<T> {
         return annotatedTargets;
     }
 
-    public <T extends Annotation> List<AnnotatedElement> getMembersWithAnnotation(Class<T> annotation){
+    public <A extends Annotation> List<AnnotatedElement> getMembersWithAnnotation(Class<A> annotation){
         return annotatedTargets.getOrDefault(annotation,new ArrayList<>());
     }
     public Method getMethod(String name){
@@ -119,5 +120,9 @@ public class ClassManifest<T> {
 
     public Collection<Method> getMethods() {
         return methods.values();
+    }
+
+    public <A extends Annotation> boolean hasMembersWithAnnotation(Class<A> annotation) {
+        return !getMembersWithAnnotation(annotation).isEmpty();
     }
 }

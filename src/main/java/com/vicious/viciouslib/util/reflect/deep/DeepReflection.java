@@ -203,6 +203,15 @@ public class DeepReflection {
         return cycleAndExecute(cls.getSuperclass(),func);
     }
 
+    public static <T> T cycleParents(Class<?> cls, Function<Class<?>,T> func){
+        if(cls == null) return null;
+        //Try current class.
+        T t = func.apply(cls);
+        if(t != null) return t;
+        //Try superclass
+        return cycleAndExecute(cls.getSuperclass(),func);
+    }
+
     /**
      * Cycles through a class, its parents, its interfaces and their parents recursively.
      */

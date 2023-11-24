@@ -59,7 +59,7 @@ public class VSONValue implements IHasDescription,IHasChildren, Supplier<Object>
             }
             V v = SerializationHandler.deserialize(valueString,cls);
             if(v == null){
-                throw new VSONException("Completely failed to parse a VSON value.");
+                throw new VSONException("Completely failed to parse a VSON value. String: " + valueString);
             }
             value = v;
             return v;

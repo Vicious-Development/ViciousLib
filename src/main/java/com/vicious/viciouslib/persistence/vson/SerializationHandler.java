@@ -37,6 +37,8 @@ public class SerializationHandler {
         registerDeserializer(Boolean.class, SerializationHandler::booleanForm);
         registerDeserializer(boolean.class, SerializationHandler::booleanForm);
         registerHandler(String.class,(str)->str, s-> "\"" + s + "\"");
+        registerHandler(Character.class,s -> s.charAt(0), Object::toString);
+        registerHandler(char.class,s -> s.charAt(0), Object::toString);
         registerHandler(UUID.class,UUID::fromString,UUID::toString);
     }
     private static boolean booleanForm(String str) {
@@ -59,17 +61,21 @@ public class SerializationHandler {
     public static String decimalForm(String str){
         StringBuilder out = new StringBuilder();
         boolean skipPeriod = false;
+        boolean isNegative = false;
         for (int i = 0; i < str.length(); i++) {
             char c = str.charAt(i);
             if(Character.isDigit(c)){
                 out.append(c);
+            }
+            else if(c == '-'){
+                isNegative = true;
             }
             else if(c == '.' && !skipPeriod){
                 skipPeriod=true;
                 out.append(c);
             }
         }
-        return out.toString();
+        return (isNegative ? "-" : "") + out.toString();
     }
 
     public static <V> V deserialize(String str, Class<V> cls){

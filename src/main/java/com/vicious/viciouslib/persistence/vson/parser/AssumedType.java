@@ -24,8 +24,8 @@ public class AssumedType {
                 }
             }
             else{
-                if(Character.isDigit(c) || c == '-'){
-                    type=Integer.class;
+                if(Character.isDigit(c)){
+                    type=Long.class;
                 }
                 if (Character.isLetter(c)) {
                     type = String.class;

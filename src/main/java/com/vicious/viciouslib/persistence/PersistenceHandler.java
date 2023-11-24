@@ -1,267 +1,349 @@
 package com.vicious.viciouslib.persistence;
 
-import com.vicious.viciouslib.LoggerWrapper;
 import com.vicious.viciouslib.aunotamation.InvalidAnnotationException;
-import com.vicious.viciouslib.persistence.storage.AnnotationAttrInfo;
-import com.vicious.viciouslib.persistence.storage.AttrInfo;
 import com.vicious.viciouslib.persistence.storage.AttributeModificationEvent;
 import com.vicious.viciouslib.persistence.storage.aunotamations.*;
 import com.vicious.viciouslib.persistence.vson.SerializationHandler;
 import com.vicious.viciouslib.persistence.vson.VSONArray;
 import com.vicious.viciouslib.persistence.vson.VSONMap;
 import com.vicious.viciouslib.persistence.vson.parser.VSONMapParser;
-import com.vicious.viciouslib.persistence.vson.value.VSONException;
 import com.vicious.viciouslib.persistence.vson.value.VSONMapping;
 import com.vicious.viciouslib.persistence.vson.value.VSONValue;
 import com.vicious.viciouslib.persistence.vson.writer.VSONWriter;
 import com.vicious.viciouslib.util.ClassAnalyzer;
+import com.vicious.viciouslib.util.FileUtil;
 import com.vicious.viciouslib.util.reflect.ClassManifest;
 import com.vicious.viciouslib.util.reflect.deep.DeepReflection;
 
 import javax.annotation.Nonnull;
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.lang.reflect.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 public class PersistenceHandler {
+    public static final String SPECIAL_ENUM_KEY = "E-NAME";
     public static final String SPECIAL_TYPE_KEY = "VSONTYPE";
 
+    public static void init(Object o){
+        if(!classOf(o).isAnnotationPresent(DontAutoLoad.class)) {
+            load(o);
+        }
+        save(o);
+    }
+
     public static void load(Object o){
-        VSONMap map = loadVSON(getPath(o));
-        load(o,map);
+        load(o,Context.of(o));
     }
 
-    private static void load(Object o, VSONMap map){
-        if(o == null){
-            return;
-        }
-        boolean isStatic = o instanceof Class<?>;
-        Class<?> cls = getClassOf(o);
-        if(map == null || map.isEmpty()){
-            return;
-        }
-        if(map.containsKey("META-MAP")){
-            if(o instanceof IPersistent.Metaful) {
-                ((IPersistent.Metaful) o).loadMeta(map.get("META-MAP").softAs(VSONMap.class));
-            }
-        }
-        Throwable failure = DeepReflection.cycleAndExecute(cls,c->{
-            ClassManifest<?> manifest = ClassAnalyzer.analyzeClass(c);
-            try {
-                load(manifest, map, o, isStatic);
-            } catch (Throwable e){
-                return e;
-            }
-            return null;
-        });
-        if(failure != null){
-            throw new RuntimeException("Failed to load a VSON object.",failure);
-        }
-    }
-
-    public static boolean isInvalid(Member m, boolean isStatic){
-        if(!isStatic && Modifier.isStatic(m.getModifiers())){
-            return true;
-        }
-        return isStatic && !Modifier.isStatic(m.getModifiers());
-    }
-
-    private static void load(ClassManifest<?> manifest, VSONMap map, Object o, boolean isStatic) {
-        if(o == null) {
-            o = SerializationHandler.initialize(manifest.getTargetClass());
-        }
-        List<AnnotatedElement> members = manifest.getMembersWithAnnotation(Save.class);
-        List<AnnotatedElement> listeners = manifest.getMembersWithAnnotation(OnChanged.class);
-        for (AnnotatedElement member : members) {
-            if (member instanceof Field) {
-                try {
-                    Field f = (Field) member;
-                    if (isInvalid(f, isStatic)) {
-                        continue;
-                    }
-                    Save save = member.getAnnotation(Save.class);
-                    String name = save.value();
-                    if (name.isEmpty()) {
-                        name = f.getName();
-                    }
-                    if (map.containsKey(name)) {
-                        for (AnnotatedElement listener : listeners) {
-                            if (listener instanceof Method) {
-                                Method m = (Method) listener;
-                                if (!isStatic && Modifier.isStatic(m.getModifiers())) {
-                                    continue;
-                                }
-                                if (isStatic && !Modifier.isStatic(m.getModifiers())) {
-                                    continue;
-                                }
-                                m.invoke(o, new AttributeModificationEvent(false, f.get(o)));
-                            }
-                        }
-                        load(name, o, f, map);
-                        for (AnnotatedElement listener : listeners) {
-                            if (listener instanceof Method) {
-                                Method m = (Method) listener;
-                                if (!isStatic && Modifier.isStatic(m.getModifiers())) {
-                                    continue;
-                                }
-                                if (isStatic && !Modifier.isStatic(m.getModifiers())) {
-                                    continue;
-                                }
-                                m.invoke(o, new AttributeModificationEvent(true, f.get(o)));
-                            }
-                        }
-                    }
-                } catch (Throwable t) {
-                    throw new VSONException("Could not load field " + ((Field) member).getName() + " in class " + manifest.getTargetClass(), t);
-                }
-            }
-        }
-
-    }
-
-    /**
-     * Loads a value from a VSONMap.
-     *
-     * @param name Name of the object in the parent map.
-     * @param o The parent object.
-     * @param map The parent map.
-     * @param f The Field containing the object being loaded.
-     */
-    @SuppressWarnings({"unchecked","rawtypes"})
-    private static void load(String name, Object o, Field f, VSONMap map){
-        Class<?> type = f.getType();
+    public static void save(Object o){
         try {
-            //The object being loaded.
-            Object internal = f.get(o);
-            //Contexts.
-            boolean isStatic = type == Class.class;
-            ClassManifest<?> manif = ClassAnalyzer.analyzeClass(isStatic ? (Class)internal : type);
-            boolean isSavable = !f.isAnnotationPresent(Unmapped.class) && (f.isAnnotationPresent(Mapped.class) || !manif.getMembersWithAnnotation(Save.class).isEmpty());
-            //If the object is a persistent object load from the map.
-            if(isSavable){
-                VSONMap mapRepr = map.get(name).softAs(VSONMap.class);
-                //Set field to initialized value if the map representation is not empty.
-                if(internal == null && !mapRepr.isEmpty()){
-                    internal = initField(f,o);
+            boolean loadOnly = classOf(o).isAnnotationPresent(LoadOnly.class);
+            String path = getPath(o);
+            if(Files.exists(Paths.get(path))){
+                if(!loadOnly){
+                    saveToFile(path,save(o,Context.of(o)));
                 }
-                load(internal,mapRepr);
             }
             else{
-                Typing typing = f.getAnnotation(Typing.class);
-                //If the object has typing handle here.
-                if(typing != null){
-                    Class<?>[] types = typing.value();
-                    //Attempt initialization. This may throw an exception in some cases, but in those it will not be my fault.
-                    //Example fail case: Map<?,?> m = null. Interface map can't be instantiated. Simple fix: HashMap<?,?> m = null. Will instantiate the map.
-                    if(internal == null){
-                        initField(f,o);
+                path = FileUtil.resolve(path);
+                saveToFile(path,save(o,Context.of(o)));
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void load(Object o, Context context){
+        String path = getPath(o);
+        VSONMap map = loadFromFile(path);
+        if(map != null) {
+            loadObject(o, map, context);
+        }
+    }
+
+    private static void loadObject(Object o, VSONMap map, Context context){
+        if(context.isNonStatic()) {
+            Class<?> cls = classOf(o);
+            while (cls != null && cls != Class.class) {
+                loadObjectOnClass(o, map, context, cls);
+                cls = cls.getSuperclass();
+            }
+        }
+        else{
+            loadObjectOnClass(o, map, context, classOf(o));
+        }
+    }
+
+    private static void loadObjectOnClass(Object o, VSONMap map, Context context, Class<?> cls){
+        List<AnnotatedElement> listeners = ClassAnalyzer.analyzeClass(classOf(o)).getMembersWithAnnotation(OnChanged.class);
+        onSavableFields(cls,context,field->{
+            try {
+                VSONMapping mapping = map.get(getName(field));
+                if (mapping != null) {
+                    Class<?> type = field.getType();
+                    Context fieldContext = Context.of(type);
+                    if (fieldContext.isStatic()) {
+                        Object v = field.get(o);
+                        if(v == null){
+                            throw new InvalidAnnotationException("Cannot have @Save on Field of type Class with null value.");
+                        }
+                        loadObjectOnClass(v, mapping.softAs(VSONMap.class), Context.STATIC, (Class<?>) v);
+                    } else {
+                        onChange(listeners, o, false, field, context);
+                        field.set(o, unmap(type, field.getAnnotation(Typing.class), mapping, field.get(o), field.isAnnotationPresent(Unmapped.class), field.isAnnotationPresent(Mapped.class), 0));
+                        onChange(listeners, o, true, field, context);
+
                     }
-                    if(Map.class.isAssignableFrom(type)){
-                        unmapMap(types,map,name,internal);
-                    }
-                    else if(Collection.class.isAssignableFrom(type)){
-                        unmapCollection(types,map,name,internal);
-                    }
-                    else{
-                        throw new InvalidAnnotationException("Typing on " + f + " is not allowed. Typing is only used for Maps and Collections.");
+                }
+            } catch (IllegalAccessException e) {
+                throw new InvalidAnnotationException(e);
+            }
+        });
+    }
+
+    private static void onChange(List<AnnotatedElement> listeners, Object o, boolean done, Field field, Context context){
+        for (AnnotatedElement listener : listeners) {
+            if (listener instanceof Method) {
+                Method m = (Method) listener;
+                if (context.isNonStatic() && Modifier.isStatic(m.getModifiers())) {
+                    continue;
+                }
+                if (context.isStatic() && !Modifier.isStatic(m.getModifiers())) {
+                    continue;
+                }
+                try {
+                    m.invoke(o, new AttributeModificationEvent(done, field.get(o)));
+                } catch (IllegalAccessException | InvocationTargetException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+    }
+
+    @SuppressWarnings({"unchecked","rawtypes"})
+    private static Object unmap(Class<?> type, Typing typing, VSONValue mapping, Object defaultValue, boolean forceUnmapped, boolean forceMapped, int ord){
+        if(typing != null && typing.value().length <= ord){
+            typing=null;
+        }
+        if(typing != null){
+            if(mapping.get() instanceof VSONMap){
+                if(type == VSONMap.class){
+                    return mapping.get();
+                }
+                Map map = (Map<?, ?>) defaultValue;
+                if(map == null){
+                    map = (Map<?, ?>) SerializationHandler.initialize(type);
+                }
+                map.clear();
+                VSONMap map1 = mapping.softAs(VSONMap.class);
+                Class<?> keyType = typing.value()[ord];
+                Class<?> valType = typing.value()[ord+1];
+                for (String key : map1.keySet()) {
+                    map.put(SerializationHandler.deserialize(key,keyType), unmap(valType,typing,map1.get(key),null,forceUnmapped,forceMapped,ord+2));
+                }
+                return map;
+            }
+            else if(mapping.get() instanceof VSONArray){
+                if(type == VSONArray.class){
+                    return mapping.get();
+                }
+                Collection collection = (Collection) defaultValue;
+                if(collection == null){
+                    collection = (Collection) SerializationHandler.initialize(type);
+                }
+                collection.clear();
+                Class<?> valType = typing.value()[ord];
+                for (VSONValue value : mapping.softAs(VSONArray.class)) {
+                    collection.add(unmap(valType,typing,value,null,forceUnmapped,forceUnmapped,ord+1));
+                }
+                return collection;
+            }
+        }
+        else{
+            if((forceUnmapped || !ClassAnalyzer.analyzeClass(type).hasMembersWithAnnotation(Save.class) && Enum.class.isAssignableFrom(type))){
+                String name = mapping.softAs(String.class);
+                return Enum.valueOf((Class)type,name);
+            }
+            else if(forceMapped || mapping.get() instanceof VSONMap){
+                VSONMap internal = (VSONMap) mapping.get();
+                if(Enum.class.isAssignableFrom(type)){
+                    String name = internal.get(SPECIAL_ENUM_KEY).softAs(String.class);
+                    Enum val = Enum.valueOf((Class)type,name);
+                    loadObject(val,internal,Context.NONSTATIC);
+                    return val;
+                }
+                else if(internal.containsKey(SPECIAL_TYPE_KEY)){
+                    String key = internal.get(SPECIAL_TYPE_KEY).softAs(String.class);
+                    try {
+                        type = KeyToClass.get(key);
+                        Object source = SerializationHandler.initialize(type);
+                        loadObject(source,internal,Context.NONSTATIC);
+                        return source;
+                    } catch (ClassNotFoundException e) {
+                        throw new RuntimeException("No key to class converter registered for " + key + " use KeyToClass.register to provide.");
                     }
                 }
                 else{
-                    f.set(o, map.get(name).softAs(f.getType()));
+                    Object source = requireNonNull(defaultValue,type);
+                    loadObject(source,internal,Context.of(source));
+                    return source;
                 }
             }
-        } catch (IllegalAccessException e) {
-            throw new InvalidAnnotationException("Must be public.",e);
+        }
+        return mapping.softAs(type);
+    }
+
+    private static Object requireNonNull(Object defaultValue, Class<?> type) {
+        if(defaultValue == null){
+            return SerializationHandler.initialize(type);
+        }
+        return defaultValue;
+    }
+
+    private static String getName(Field field){
+        Save anno = field.getAnnotation(Save.class);
+        return !anno.value().isEmpty() ? anno.value() : field.getName();
+    }
+
+    private static void onSavableFields(Class<?> type, Context context, Consumer<Field> cons){
+        ClassManifest<?> manifest = ClassAnalyzer.analyzeClass(type);
+        for (AnnotatedElement element : manifest.getMembersWithAnnotation(Save.class)) {
+            if(element instanceof Field){
+                if(context.matches((Member) element)){
+                    if(!((Field) element).isAccessible()){
+                        ((Field) element).setAccessible(true);
+                    }
+                    cons.accept((Field) element);
+                }
+            }
+            else{
+                throw new InvalidAnnotationException("@Save can only be applied to Fields.");
+            }
         }
     }
 
-
-
-    @SuppressWarnings({"rawtypes","unchecked"})
-    private static void unmapMap(Class<?>[] types, VSONMap map, String name, Object internal){
-        VSONMap mapping = map.get(name).softAs(VSONMap.class);
-        Class<?> keyType = types[0];
-        Class<?> valueType = types[1];
-        Map val = (Map) internal;
-        val.clear();
-        boolean isImplicit = !ClassAnalyzer.analyzeClass(valueType).getMembersWithAnnotation(Save.class).isEmpty();
-        for (String key : mapping.keySet()) {
-            Object k = SerializationHandler.deserialize(key,keyType);
-            VSONValue vson = mapping.get(key);
-            val.put(k,unmap(valueType,vson,isImplicit));
-        }
+    private static VSONMap save(Object o, Context context){
+        return saveObject(o,context);
     }
 
-    @SuppressWarnings({"rawtypes","unchecked"})
-    private static void unmapCollection(Class<?>[] types, VSONMap map, String name, Object internal){
-        VSONArray mapping = map.get(name).softAs(VSONArray.class);
-        Class<?> valueType = types[0];
-        boolean isImplicit = !ClassAnalyzer.analyzeClass(valueType).getMembersWithAnnotation(Save.class).isEmpty();
-        Collection val = (Collection) internal;
-        val.clear();
-        for (VSONValue vson : mapping) {
-            val.add(unmap(valueType, vson, isImplicit));
+    private static VSONMap saveObject(Object o, Context context){
+        VSONMap map = new VSONMap();
+        if(context.isNonStatic()) {
+            Class<?> cls = classOf(o);
+            while (cls != null && cls != Class.class) {
+                saveObjectOnClass(o, map, context, cls);
+                cls = cls.getSuperclass();
+            }
         }
+        else{
+            saveObjectOnClass(o, map, context, classOf(o));
+        }
+        return map;
     }
 
-    private static Object initField(Field f, Object obj){
-        Object out = SerializationHandler.initialize(f.getType());
-        try {
-            f.set(obj,out);
-        } catch (IllegalAccessException e) {
-            throw new InvalidAnnotationException(e);
-        }
-        return out;
+    private static void saveObjectOnClass(Object o, VSONMap map, Context context, Class<?> cls){
+        onSavableFields(cls,context,field->{
+            try {
+                String name = getName(field);
+                Class<?> type = field.getType();
+                Context fieldContext = Context.of(type);
+                if (fieldContext.isStatic()) {
+                    VSONMap m = new VSONMap();
+                    Object v = field.get(o);
+                    if (v == null) {
+                        throw new InvalidAnnotationException("Cannot have @Save on Field of type Class with null value.");
+                    }
+                    saveObjectOnClass(v, m, Context.STATIC, (Class<?>) v);
+                    map.put(name, m);
+                } else {
+                    try {
+                        map.put(name, map(type, field.getAnnotation(Typing.class), field.get(o), field.isAnnotationPresent(Unmapped.class), field.isAnnotationPresent(Mapped.class), 0));
+                    } catch (IllegalAccessException e) {
+                        throw new InvalidAnnotationException(e);
+                    }
+                }
+            } catch (IllegalAccessException e){
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     @SuppressWarnings({"unchecked","rawtypes"})
-    private static <V> V unmap(Class<V> type, VSONValue vson, boolean savable){
-        if(vson.isNull()){
-            return null;
+    private static Object map(Class<?> type, Typing typing, Object val, boolean forceUnmapped, boolean forceMapped, int ord){
+        if(typing != null && typing.value().length <= ord){
+            typing=null;
         }
-        if(vson.isType(VSONMap.class)) {
-            V out = null;
-            VSONMap m = vson.softAs(VSONMap.class);
-            if (m.containsKey(SPECIAL_TYPE_KEY)) {
-                try {
-                    out = (V) KeyToClass.newInstance(m.get(SPECIAL_TYPE_KEY).softAs(String.class));
-                    load(ClassAnalyzer.analyzeClass(getClassOf(out)), vson.softAs(VSONMap.class), out, out instanceof Class<?>);
-                } catch (ClassNotFoundException e) {
-                    LoggerWrapper.logError(m.get(SPECIAL_TYPE_KEY) + " is no longer registered. Will not init object from persistent info. May crash or lose data.");
-                }
+        if(val instanceof VSONMap || val instanceof VSONArray){
+            return val;
+        }
+        if(val instanceof Map){
+            VSONMap out = new VSONMap();
+            Map m = (Map) val;
+            for (Object key : m.keySet()) {
+                Object value = m.get(key);
+                out.put(key instanceof String ? (String) key : SerializationHandler.serialize(key),map(typing.value()[ord+1],typing,value,forceUnmapped,forceMapped,ord+2));
             }
-            else if (savable) {
-
-                if (m.containsKey("E-NAME")) {
-                    out = (V) Enum.valueOf((Class<? extends Enum>) type, m.remove("E-NAME").softAs(String.class));
-                } else {
-                    out = SerializationHandler.initialize(type);
-                }
-                load(ClassAnalyzer.getManifest(type), vson.softAs(VSONMap.class), out, out instanceof Class<?>);
-                if (out == null) {
-                    out = SerializationHandler.initialize(type);
-                }
+            return out;
+        }
+        else if(val instanceof Collection){
+            VSONArray out = new VSONArray();
+            Collection c = (Collection) val;
+            for (Object value : c) {
+                out.addObject(map(typing.value()[ord],typing,value,forceUnmapped,forceMapped,ord+1));
             }
             return out;
         }
         else{
-            return vson.softAs(type);
+            ClassManifest manif = ClassAnalyzer.analyzeClass(type);
+            if(val instanceof Enum){
+                if(forceUnmapped || !manif.hasMembersWithAnnotation(Save.class)){
+                    return ((Enum<?>) val).name();
+                }
+                else{
+                    VSONMap out = save(val,Context.NONSTATIC);
+                    out.put(SPECIAL_ENUM_KEY,((Enum<?>) val).name());
+                    return out;
+                }
+            }
+            else if(forceMapped || manif.hasMembersWithAnnotation(Save.class)){
+                VSONMap map = save(val,Context.of(val));
+                if(val.getClass() != type){
+                    try {
+                        map.put(SPECIAL_TYPE_KEY,KeyToClass.get(val.getClass()));
+                        System.out.println(map);
+                    } catch (ClassNotFoundException e) {
+                        throw new RuntimeException("No key to class converter registered for " + val.getClass() + " use KeyToClass.register to provide.");
+                    }
+                }
+                return map;
+            }
+            else{
+                return val;
+            }
         }
     }
 
+    public static Class<?> classOf(Object o){
+        return o instanceof Class<?> ? (Class<?>) o : o.getClass();
+    }
+
+
+
     @Nonnull
     public static String getPath(Object o){
-        boolean isStatic = o instanceof Class<?>;
-        Class<?> cls = getClassOf(o);
+        Context ctx = Context.of(o);
+        Class<?> cls = classOf(o);
         AtomicReference<RuntimeException> thrown = new AtomicReference<>();
-        String path = DeepReflection.cycleAndExecute(cls,c->{
+        String path = DeepReflection.cycleAndExecute(cls, c->{
             ClassManifest<?> manifest = ClassAnalyzer.analyzeClass(c);
             try {
-                return getPath(manifest, o, isStatic);
+                return getPath(manifest, o, ctx);
             } catch (RuntimeException e){
                 if(thrown.get() == null){
                     thrown.set(e);
@@ -277,16 +359,16 @@ public class PersistenceHandler {
         }
     }
 
-    private static String getPath(ClassManifest<?> manifest, Object o, boolean isStatic){
+    private static String getPath(ClassManifest<?> manifest, Object o, Context ctx){
         List<AnnotatedElement> persistentPath = manifest.getMembersWithAnnotation(PersistentPath.class);
         List<Field> valid = new ArrayList<>();
         for (AnnotatedElement annotatedElement : persistentPath) {
             if(annotatedElement instanceof Field){
                 Field f = (Field) annotatedElement;
-                if(isStatic && Modifier.isStatic(f.getModifiers())){
+                if(ctx.isStatic() && Modifier.isStatic(f.getModifiers())){
                     valid.add(f);
                 }
-                if(!isStatic && !Modifier.isStatic(f.getModifiers())){
+                if(ctx.isNonStatic() && !Modifier.isStatic(f.getModifiers())){
                     valid.add(f);
                 }
             }
@@ -309,180 +391,11 @@ public class PersistenceHandler {
         return "";
     }
 
-    public static boolean isLoadOnly(Class<?> cls){
-        Boolean out = DeepReflection.cycleAndExecute(cls,c->{
-            if(c.isAnnotationPresent(LoadOnly.class)){
-                return true;
-            }
-            else{
-                return null;
-            }
-        });
-        if(out == null){
-            return false;
-        }
-        return out;
-    }
-
-    public static void save(Object o){
-        Class<?> cls = getClassOf(o);
-        String path = getPath(o);
-        //Don't load already present objects if the file is load only.
-        if(isLoadOnly(cls) && new File(path).exists()){
-            try(FileInputStream fis = new FileInputStream(path)){
-                if(fis.available() > 0){
-                    return;
-                }
-            } catch (IOException ignored) {}
-        }
-        VSONMap out = toMap(o);
-        try {
-            saveVSON(path, out);
-        } catch (FileNotFoundException ignored){}
-        catch (IOException e){
-            throw new RuntimeException(e);
-        }
-    }
-
-    public static VSONMap toMap(Object o){
-        boolean isStatic = o instanceof Class<?>;
-        Class<?> cls = getClassOf(o);
-        VSONMap out = new VSONMap();
-        Throwable failure = DeepReflection.cycleAndExecute(cls,c->{
-            ClassManifest<?> manifest = ClassAnalyzer.analyzeClass(c);
-            try {
-                save(manifest, out, o, isStatic);
-            } catch (Throwable e){
-                return e;
-            }
-            return null;
-        });
-        if(o instanceof IPersistent.Metaful){
-            out.put("META-MAP", ((IPersistent.Metaful) o).getMetaMap());
-        }
-        if(failure != null){
-            throw new RuntimeException("Failed to save a VSON object.",failure);
-        }
-        return out;
-    }
-
-    private static void save(ClassManifest<?> manifest, VSONMap out, Object o, boolean isStatic) {
-        List<AnnotatedElement> members = manifest.getMembersWithAnnotation(Save.class);
-        for (AnnotatedElement member : members) {
-            if(member instanceof Field){
-                try {
-                    Field f = (Field) member;
-                    if (isInvalid(f, isStatic)) {
-                        continue;
-                    }
-                    Save save = member.getAnnotation(Save.class);
-                    String name = save.value();
-                    if (name.isEmpty()) {
-                        name = f.getName();
-                    }
-                    saveField(f, o, out, name, save);
-                } catch (Throwable t){
-                    throw new VSONException("Could not save field " + ((Field) member).getName() + " in class " + manifest.getTargetClass() + " caused by ",t);
-                }
-            }
-        }
-    }
-
-    @SuppressWarnings({"rawtypes","unchecked"})
-    private static void saveField(Field f, Object o, VSONMap out, String name, Save save){
-        try {
-            Object internal = f.get(o);
-            ClassManifest<?> manif = ClassAnalyzer.analyzeClass(getClassOf(internal));
-            boolean mappable = !f.isAnnotationPresent(Unmapped.class) && (f.isAnnotationPresent(Mapped.class) || !manif.getMembersWithAnnotation(Save.class).isEmpty());
-            if (internal != null && mappable) {
-                out.put(name,map(internal,f.getType(),true).asMapping(new AnnotationAttrInfo(save)));
-            }
-            else if (f.isAnnotationPresent(Typing.class)){
-                saveHardTyped(f,internal,out,save,name);
-            }
-            else {
-                out.put(name, new VSONMapping(internal, new AnnotationAttrInfo(save)));
-            }
-        } catch (IllegalAccessException e) {
-            throw new InvalidAnnotationException(e);
-        }
-    }
-
-    private static void saveHardTyped(Field f, Object internal, VSONMap out, Save save, String name){
-        Typing typing = f.getAnnotation(Typing.class);
-        Class<?>[] types = typing.value();
-        if(internal == null){
-            out.put(name, new VSONMapping(null,new AnnotationAttrInfo(save)));
-        }
-        else {
-            Class<?> type = internal.getClass();
-            if (Map.class.isAssignableFrom(type)) {
-                out.put(name,mapMap(types,internal).asMapping(new AnnotationAttrInfo(save)));
-            } else if (Collection.class.isAssignableFrom(type)) {
-                out.put(name,mapCollection(types,internal).asMapping(new AnnotationAttrInfo(save)));
-            }
-        }
-    }
-
-    @SuppressWarnings("rawtypes")
-    private static VSONValue mapMap(Class<?>[] types, Object internal){
-        Class<?> valType = types[1];
-        boolean isImplicit = !ClassAnalyzer.analyzeClass(valType).getMembersWithAnnotation(Save.class).isEmpty();
-        VSONMap otherobj = new VSONMap();
-        Map val = (Map) internal;
-        for (Object key : val.keySet()) {
-            String k = key instanceof String ? (String) key : SerializationHandler.serialize(key);
-            otherobj.put(k,map(val.get(key),valType,isImplicit).asMapping(AttrInfo.EMPTY));
-        }
-        return new VSONValue(otherobj);
-    }
-
-    @SuppressWarnings("rawtypes")
-    private static VSONValue mapCollection(Class<?>[] types, Object internal){
-        Class<?> valType = types[0];
-        boolean isImplicit = !ClassAnalyzer.analyzeClass(valType).getMembersWithAnnotation(Save.class).isEmpty();
-        VSONArray otherobj = new VSONArray();
-        Collection val = (Collection) internal;
-        for (Object value : val) {
-            otherobj.add(map(value,valType,isImplicit));
-        }
-        return new VSONValue(otherobj);
-    }
-
-    private static VSONValue map(Object value, Class<?> valType, boolean savable){
-        boolean isStatic = value instanceof Class;
-        if(valType != getClassOf(value)){
-            try {
-                VSONMap m = new VSONMap();
-                save(ClassAnalyzer.analyzeClass(getClassOf(value)), m, value, isStatic);
-                String key = KeyToClass.get(getClassOf(value));
-                m.put(SPECIAL_TYPE_KEY,key);
-                return new VSONValue(m);
-            } catch (ClassNotFoundException e) {
-                throw new RuntimeException("No key for class " + getClassOf(value) + ". Register using KeyToClass.register.");
-            }
-        }
-        if(savable){
-            VSONMap m = new VSONMap();
-            save(ClassAnalyzer.analyzeClass(getClassOf(value)), m, value, isStatic);
-            if(value instanceof Enum){
-                if(m.containsKey("E-NAME")){
-                    throw new InvalidAnnotationException("Savable Enum class is using a reserved data name 'E-NAME' this is reserved for the persistence handler, rename your data field.");
-                }
-                m.put("E-NAME",((Enum<?>) value).name());
-            }
-            return new VSONValue(m);
-        }
-        else{
-            return new VSONValue(value);
-        }
-    }
-
-    public static void saveVSON(String path, VSONMap out) throws IOException {
+    public static void saveToFile(String path, VSONMap out) throws IOException {
         new VSONWriter(path).write(out);
     }
 
-    public static VSONMap loadVSON(String path){
+    public static VSONMap loadFromFile(String path){
         try {
             VSONMapParser parser = new VSONMapParser(path);
             return parser.getMap();
@@ -491,20 +404,31 @@ public class PersistenceHandler {
         }
     }
 
-    public static Class<?> getClassOf(Object value){
-        if(value instanceof Class<?>){
-            return (Class<?>) value;
-        }
-        else if(value instanceof Enum<?>){
-            return ((Enum<?>) value).getDeclaringClass();
-        }
-        else{
-            return value.getClass();
-        }
-    }
+    private enum Context {
+        STATIC,
+        NONSTATIC;
 
-    public static void init(Object object) {
-        load(object);
-        save(object);
+        public boolean isStatic(){
+            return this == STATIC;
+        }
+
+        public static Context of(Object o){
+            return o instanceof Class<?> ? STATIC : NONSTATIC;
+        }
+
+        public static Context of(Class<?> cls){
+            return cls == Class.class ? STATIC : NONSTATIC;
+        }
+
+        public boolean isNonStatic() {
+            return this == NONSTATIC;
+        }
+
+        public boolean matches(Member element) {
+            if(isStatic() && Modifier.isStatic(element.getModifiers())){
+                return true;
+            }
+            return isNonStatic() && !Modifier.isStatic(element.getModifiers());
+        }
     }
 }
