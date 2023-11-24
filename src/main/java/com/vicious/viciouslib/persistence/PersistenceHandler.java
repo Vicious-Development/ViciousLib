@@ -316,7 +316,6 @@ public class PersistenceHandler {
                 if(val.getClass() != type){
                     try {
                         map.put(SPECIAL_TYPE_KEY,KeyToClass.get(val.getClass()));
-                        System.out.println(map);
                     } catch (ClassNotFoundException e) {
                         throw new RuntimeException("No key to class converter registered for " + val.getClass() + " use KeyToClass.register to provide.");
                     }
