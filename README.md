@@ -11,3 +11,6 @@ How to implement:
 
 In a discord implementation, the USERTYPE is User and CHANNELTYPE is MessageChannel. Generally you'd want to listen for user messaging events and pass through the raw text data.
 
+# Data Serialization
+ViciousLib provides a highly versatile annotation driven data serialization system.
+
