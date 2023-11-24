@@ -1,0 +1,137 @@
+bytePos = 126
+byteNeg = -127
+shortPos = 2317
+shortNeg = -378
+intPos = 10
+intNeg = -10
+longPos = 21475959599
+longNeg = -214748469
+floatPos = -21388.0
+floatNeg = -2467.09
+doublePos = 3.402824663852888
+doubleNeg = -12.211
+boolTrue = false
+boolFalse = true
+someChar = y
+someString = "Hi I am not cool."
+bytePosBoxed = 126
+byteNegBoxed = -127
+shortPosBoxed = 2378
+shortNegBoxed = -372
+intPosBoxed = 19
+intNegBoxed = -18
+longPosBoxed = 2147595059
+longNegBoxed = -214748465869
+floatPosBoxed = 34.606
+floatNegBoxed = -267.0
+doublePosBoxed = 3.402824663852888
+doubleNegBoxed = -12.211
+boolTrueBoxed = false
+boolFalseBoxed = true
+someCharBoxed = v
+a = {
+	a = 3
+}
+b = {
+	b = true
+}
+end = {
+	D = {
+		C = {
+			b = {
+				one = 99
+			}
+		}
+	}
+}
+e = "THREE"
+fs = [
+	{
+		venus = 3
+		E-NAME = "Wack"
+	}
+	{
+		venus = -27
+		E-NAME = "SMACK"
+	}
+	{
+		venus = 3
+		E-NAME = "CrAcK"
+	}
+]
+unmappedF = "CrAcK"
+otherTestCFGClass = {
+	pool = 37
+	isPool = true
+	f = "CrAcK"
+}
+ints = [
+	2
+	3
+	4
+	5
+]
+pas = [
+	{
+		a = 28
+	}
+	{
+		a = 298
+	}
+	{
+		a = 278
+	}
+]
+nestedList = [
+	[
+		1
+		2
+		3
+	]
+	[
+		4
+		5
+		6
+	]
+]
+cursed = {
+	1 = 2.34
+	2 = 2.384
+	3 = 2.3476
+}
+superCursed = {
+	hi = {
+		1.0 = [
+			3.5
+			3.9
+			3.1
+		]
+	}
+}
+z = {
+	v = 6
+	c = false
+	b = 978
+}
+z2 = {
+	v = 9
+	c = true
+	b = -1
+	VSONTYPE = "vicious.test.pz"
+}
+extendeds = [
+	{
+		b = 7
+	}
+	{
+		c = false
+		b = -1
+		VSONTYPE = "vicious.test.py"
+	}
+	{
+		v = t
+		c = true
+		b = -1
+		VSONTYPE = "vicious.test.pz"
+	}
+]
