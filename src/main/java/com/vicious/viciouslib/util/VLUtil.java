@@ -1,6 +1,5 @@
 package com.vicious.viciouslib.util;
 
-import com.vicious.viciouslib.database.tracking.JSONTrackable;
 
 import java.lang.reflect.Field;
 import java.text.DateFormat;
@@ -70,17 +69,6 @@ public class VLUtil {
             } },50,50, TimeUnit.MILLISECONDS);
     }
 
-    public static <T extends JSONTrackable<T>> boolean mightBeInitialized(Class<?> targetFieldClass, Object target) {
-        for (Field declaredField : target.getClass().getDeclaredFields()) {
-            declaredField.setAccessible(true);
-            if(isSubclassOfOrEqualTo(targetFieldClass,declaredField.getType())){
-                try {
-                    if (declaredField.get(target) == null) return false;
-                } catch(IllegalAccessException ignored){}
-            }
-        }
-        return true;
-    }
     public static boolean isSubclassOfOrEqualTo(Class<?> expected, Class<?> actual){
         while(actual != null){
             if(actual.equals(expected)) return true;
