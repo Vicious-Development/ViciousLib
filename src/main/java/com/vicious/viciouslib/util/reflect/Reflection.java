@@ -1,12 +1,13 @@
 package com.vicious.viciouslib.util.reflect;
 
 import com.vicious.viciouslib.LoggerWrapper;
-import com.vicious.viciouslib.serialization.SerializationUtil;
 
 import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 public class Reflection {
 
@@ -46,7 +47,7 @@ public class Reflection {
     }
     public static Method getMethod(Object accessed, String methodname, Class<?>[] parameters){
         Class<?> clazz = accessed instanceof Class<?> ? (Class<?>)accessed : accessed.getClass();
-        return SerializationUtil.executeOnTargetClass((cls)->{
+        return executeOnTargetClass((cls)->{
             try {
                 return cls.getDeclaredMethod(methodname,parameters);
             } catch (NoSuchMethodException ignored) {
@@ -94,7 +95,7 @@ public class Reflection {
     }*/
     public static Field getField(Object accessed, String fieldname) {
         Class<?> clazz = accessed instanceof Class<?> ? (Class<?>) accessed : accessed.getClass();
-        return SerializationUtil.executeOnTargetClass((cls)->{
+        return executeOnTargetClass((cls)->{
             try {
                 return cls.getDeclaredField(fieldname);
             } catch (NoSuchFieldException ignored) {
@@ -382,5 +383,36 @@ public class Reflection {
             clazz = clazz.getSuperclass();
         }
         return fields;
+    }
+
+    public static <T> T executeOnTargetClass(Function<Class<?>,T> funct, Class<?> start) {
+        Class<?>[] interfaces = start.getInterfaces();
+        T ret = null;
+        while(ret == null &&start != null){
+            ret = funct.apply(start);
+            if(ret != null) break;
+            for (Class<?> anInterface : interfaces) {
+                ret = funct.apply(anInterface);
+            }
+            start=start.getSuperclass();
+        }
+        return ret;
+    }
+
+    public static <T> T executeOnTargetClass(Function<Class<?>,T> funct, Predicate<Class<?>> doExec, Class<?> start) {
+        Class<?>[] interfaces;
+        while(start != null){
+            interfaces=start.getInterfaces();
+            if(doExec.test(start)) {
+                return funct.apply(start);
+            }
+            for (Class<?> anInterface : interfaces) {
+                if(doExec.test(anInterface)){
+                    return funct.apply(anInterface);
+                }
+            }
+            start=start.getSuperclass();
+        }
+        return null;
     }
 }
