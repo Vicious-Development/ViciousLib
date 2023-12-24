@@ -48,7 +48,7 @@ e = "THREE"
 fs = [
 	{
 		venus = 3
-		E-NAME = "Wack"
+		E-NAME = "CrAcK"
 	}
 	{
 		venus = -27
@@ -56,7 +56,7 @@ fs = [
 	}
 	{
 		venus = 3
-		E-NAME = "CrAcK"
+		E-NAME = "Wack"
 	}
 ]
 unmappedF = "CrAcK"
@@ -135,3 +135,4 @@ extendeds = [
 		VSONTYPE = "vicious.test.pz"
 	}
 ]
+stringWithBracket = "hi[bye]"
