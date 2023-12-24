@@ -17,7 +17,7 @@ public class TestCFG {
     @PersistentPath
     public static String path = "tests/tests.txt";
 
-    @Save
+    @Save(description = "What's up")
     public static byte bytePos = 127;
     @Save
     public static byte byteNeg = -128;

@@ -1,6 +1,7 @@
 package com.vicious.viciouslib.persistence;
 
 import com.vicious.viciouslib.aunotamation.InvalidAnnotationException;
+import com.vicious.viciouslib.persistence.storage.AnnotationAttrInfo;
 import com.vicious.viciouslib.persistence.storage.AttributeModificationEvent;
 import com.vicious.viciouslib.persistence.storage.aunotamations.*;
 import com.vicious.viciouslib.persistence.vson.SerializationHandler;
@@ -263,7 +264,10 @@ public class PersistenceHandler {
                     map.put(name, m);
                 } else {
                     try {
-                        map.put(name, map(type, field.getAnnotation(Typing.class), field.get(o), field.isAnnotationPresent(Unmapped.class), field.isAnnotationPresent(Mapped.class), 0));
+                        Object output = map(type, field.getAnnotation(Typing.class), field.get(o), field.isAnnotationPresent(Unmapped.class), field.isAnnotationPresent(Mapped.class), 0);
+                        VSONMapping mapping = new VSONMapping(output);
+                        mapping.info = new AnnotationAttrInfo(field.getAnnotation(Save.class));
+                        map.put(name,mapping);
                     } catch (IllegalAccessException e) {
                         throw new InvalidAnnotationException(e);
                     }

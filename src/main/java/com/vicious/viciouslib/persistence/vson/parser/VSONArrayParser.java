@@ -42,7 +42,7 @@ public class VSONArrayParser extends VSONParser {
                 }
                 return;
             }
-            else if(!isString && c == '\n' || c == ','){
+            else if(c == '\n' || c == ','){
                 if(value.isEmpty()){
                     continue;
                 }
