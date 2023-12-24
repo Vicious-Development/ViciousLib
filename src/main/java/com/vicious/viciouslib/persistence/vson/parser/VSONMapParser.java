@@ -23,6 +23,7 @@ public class VSONMapParser extends VSONParser {
         String name = "";
         boolean rv = false;
         String value = "";
+        boolean isString = false;
         while(hasData()) {
             char c = read();
             //Skip Comments.
@@ -32,21 +33,21 @@ public class VSONMapParser extends VSONParser {
                 }
                 continue;
             }
-            if(c == '{'){
+            if(!isString && c == '{'){
                 VSONMap inner = new VSONMapParser(fis).getMap();
                 map.put(removeEdgeWhiteSpace(name),inner);
                 rv = false;
                 name = "";
                 value = "";
             }
-            else if (c == '['){
+            else if (!isString && c == '['){
                 VSONArray array = new VSONArrayParser(fis).getArray();
                 map.put(removeEdgeWhiteSpace(name),array);
                 rv = false;
                 name = "";
                 value = "";
             }
-            else if(c == '}'){
+            else if(!isString && c == '}'){
                 if(!name.isEmpty() && !value.isEmpty()) {
                     add(name,value);
                 }
@@ -60,16 +61,19 @@ public class VSONMapParser extends VSONParser {
                     continue;
                 }
                 add(name,value);
-                AssumedType type = new AssumedType();
                 name = "";
                 value = "";
                 rv = false;
+                isString=false;
             }
             else{
                 if(!rv){
                     name += c;
                 }
                 else{
+                    if(c == '"'){
+                        isString=true;
+                    }
                     value+=c;
                 }
             }

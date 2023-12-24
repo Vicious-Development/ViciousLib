@@ -1,7 +1,19 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        mavenLocal()
+    }
+
+    dependencies {
+        classpath 'com.darylteo.gradle:javassist-plugin:0.2.0'
+    }
+}
+
 plugins {
     id 'com.github.johnrengelman.shadow' version '7.1.2'
     id "maven-publish"
     id 'java'
+
 }
 
 repositories {
@@ -11,7 +23,7 @@ repositories {
 
 group = 'vicious'
 
-version = '17-3.4.0'
+version = '17-3.5.1'
 
 dependencies {
     compileOnly 'org.json:json:20220320'

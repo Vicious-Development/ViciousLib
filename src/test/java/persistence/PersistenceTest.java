@@ -286,4 +286,16 @@ public class PersistenceTest {
         assertFalse(((PersistentY) TestCFG.extendeds.get(1)).c);
         assertEquals(((PersistentZ)TestCFG.extendeds.get(2)).v,'t');
     }
+
+    @RepeatedTest(2)
+    public void stringTest(){
+        TestCFG.stringWithBracket="hi{bye}";
+        PersistenceHandler.save(TestCFG.class);
+        PersistenceHandler.load(TestCFG.class);
+        assertEquals("hi{bye}",TestCFG.stringWithBracket);
+        TestCFG.stringWithBracket="hi[bye]";
+        PersistenceHandler.save(TestCFG.class);
+        PersistenceHandler.load(TestCFG.class);
+        assertEquals("hi[bye]",TestCFG.stringWithBracket);
+    }
 }

@@ -147,4 +147,7 @@ public class TestCFG {
     @Save
     @Typing(PersistentX.class)
     public static List<PersistentX> extendeds = new ArrayList<>();
+
+    @Save
+    public static String stringWithBracket = "hi";
 }
