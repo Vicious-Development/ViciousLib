@@ -5,7 +5,6 @@ import com.vicious.viciouslib.jarloader.ViciousEventBroadcaster;
 import com.vicious.viciouslib.jarloader.event.*;
 import com.vicious.viciouslib.persistence.PersistenceHandler;
 import com.vicious.viciouslib.persistence.storage.aunotamations.DontAutoLoad;
-import com.vicious.viciouslib.persistence.storage.aunotamations.OnChanged;
 import com.vicious.viciouslib.persistence.storage.aunotamations.PersistentPath;
 import com.vicious.viciouslib.persistence.storage.aunotamations.Save;
 import com.vicious.viciouslib.util.ClassAnalyzer;
@@ -177,11 +176,6 @@ public class Aunotamation {
                         }
                     }
                 }
-            }
-        });
-        Aunotamation.registerProcessor(new AnnotationProcessor<>(OnChanged.class, Object.class) {
-            @Override
-            public void process(Object object, AnnotatedElement element) throws Exception {
             }
         });
     }
