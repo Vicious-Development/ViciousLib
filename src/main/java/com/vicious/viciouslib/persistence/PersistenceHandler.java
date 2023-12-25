@@ -104,14 +104,14 @@ public class PersistenceHandler {
 
     @SuppressWarnings({"unchecked","rawtypes"})
     private static Object unmap(Class<?> type, Typing typing, VSONValue mapping, Object defaultValue, boolean forceUnmapped, boolean forceMapped, int ord){
+        if(type == VSONMap.class || type == VSONArray.class){
+            return mapping.softAs(type);
+        }
         if(typing != null && typing.value().length <= ord){
             typing=null;
         }
         if(typing != null){
             if(mapping.get() instanceof VSONMap){
-                if(type == VSONMap.class){
-                    return mapping.get();
-                }
                 Map map = (Map<?, ?>) defaultValue;
                 if(map == null){
                     map = (Map<?, ?>) SerializationHandler.initialize(type);
@@ -126,9 +126,6 @@ public class PersistenceHandler {
                 return map;
             }
             else if(mapping.get() instanceof VSONArray){
-                if(type == VSONArray.class){
-                    return mapping.get();
-                }
                 Collection collection = (Collection) defaultValue;
                 if(collection == null){
                     collection = (Collection) SerializationHandler.initialize(type);

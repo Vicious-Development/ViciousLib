@@ -303,6 +303,11 @@ public class PersistenceTest {
         PersistenceHandler.load(TestCFG.class);
         assertEquals("hi[hujs]",TestCFG.mapwithbadStrs.get("key1").softAs(String.class));
         assertEquals("hi{lks}",TestCFG.mapwithbadStrs.get("key2").softAs(String.class));
+        //StringMessiness.map.put("yolo","bolo");
+        PersistenceHandler.load(StringMessiness.class);
+        PersistenceHandler.save(StringMessiness.class);
+        assertEquals("bolo",StringMessiness.map.get("yolo").softAs(String.class));
+
     }
 
     @Test

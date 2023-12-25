@@ -48,12 +48,12 @@ end = {
 e = "THREE"
 fs = [
 	{
-		venus = 3
-		E-NAME = "Wack"
-	}
-	{
 		venus = -27
 		E-NAME = "SMACK"
+	}
+	{
+		venus = 3
+		E-NAME = "Wack"
 	}
 	{
 		venus = 3
