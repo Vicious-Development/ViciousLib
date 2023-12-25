@@ -23,7 +23,7 @@ public class VSONMapParser extends VSONParser {
         String name = "";
         boolean rv = false;
         String value = "";
-        boolean isString = false;
+        ValueState state = ValueState.UNKNOWN;
         while(hasData()) {
             char c = read();
             //Skip Comments.
@@ -33,21 +33,21 @@ public class VSONMapParser extends VSONParser {
                 }
                 continue;
             }
-            if(!isString && c == '{'){
+            if(state != ValueState.STRING && c == '{'){
                 VSONMap inner = new VSONMapParser(fis).getMap();
                 map.put(removeEdgeWhiteSpace(name),inner);
                 rv = false;
                 name = "";
                 value = "";
             }
-            else if (!isString && c == '['){
+            else if (state != ValueState.STRING && c == '['){
                 VSONArray array = new VSONArrayParser(fis).getArray();
                 map.put(removeEdgeWhiteSpace(name),array);
                 rv = false;
                 name = "";
                 value = "";
             }
-            else if(!isString && c == '}'){
+            else if(state != ValueState.STRING && c == '}'){
                 if(!name.isEmpty() && !value.isEmpty()) {
                     add(name,value);
                 }
@@ -64,15 +64,15 @@ public class VSONMapParser extends VSONParser {
                 name = "";
                 value = "";
                 rv = false;
-                isString=false;
+                state = ValueState.UNKNOWN;
             }
             else{
                 if(!rv){
                     name += c;
                 }
                 else{
-                    if(c == '"'){
-                        isString=true;
+                    if(!Character.isWhitespace(c) && state == ValueState.UNKNOWN) {
+                        state = c == '"' ? ValueState.STRING : ValueState.ANY;
                     }
                     value+=c;
                 }

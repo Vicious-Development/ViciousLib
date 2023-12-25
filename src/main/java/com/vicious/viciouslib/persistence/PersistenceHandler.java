@@ -2,7 +2,6 @@ package com.vicious.viciouslib.persistence;
 
 import com.vicious.viciouslib.aunotamation.InvalidAnnotationException;
 import com.vicious.viciouslib.persistence.storage.AnnotationAttrInfo;
-import com.vicious.viciouslib.persistence.storage.AttributeModificationEvent;
 import com.vicious.viciouslib.persistence.storage.aunotamations.*;
 import com.vicious.viciouslib.persistence.vson.SerializationHandler;
 import com.vicious.viciouslib.persistence.vson.VSONArray;
@@ -17,7 +16,6 @@ import com.vicious.viciouslib.util.reflect.ClassManifest;
 import com.vicious.viciouslib.util.reflect.deep.DeepReflection;
 
 import javax.annotation.Nonnull;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.*;
@@ -82,7 +80,6 @@ public class PersistenceHandler {
     }
 
     private static void loadObjectOnClass(Object o, VSONMap map, Context context, Class<?> cls){
-        List<AnnotatedElement> listeners = ClassAnalyzer.analyzeClass(classOf(o)).getMembersWithAnnotation(OnChanged.class);
         onSavableFields(cls,context,field->{
             try {
                 VSONMapping mapping = map.get(getName(field));
@@ -96,35 +93,13 @@ public class PersistenceHandler {
                         }
                         loadObjectOnClass(v, mapping.softAs(VSONMap.class), Context.STATIC, (Class<?>) v);
                     } else {
-                        onChange(listeners, o, false, field, context);
                         field.set(o, unmap(type, field.getAnnotation(Typing.class), mapping, field.get(o), field.isAnnotationPresent(Unmapped.class), field.isAnnotationPresent(Mapped.class), 0));
-                        onChange(listeners, o, true, field, context);
-
                     }
                 }
             } catch (IllegalAccessException e) {
                 throw new InvalidAnnotationException(e);
             }
         });
-    }
-
-    private static void onChange(List<AnnotatedElement> listeners, Object o, boolean done, Field field, Context context){
-        for (AnnotatedElement listener : listeners) {
-            if (listener instanceof Method) {
-                Method m = (Method) listener;
-                if (context.isNonStatic() && Modifier.isStatic(m.getModifiers())) {
-                    continue;
-                }
-                if (context.isStatic() && !Modifier.isStatic(m.getModifiers())) {
-                    continue;
-                }
-                try {
-                    m.invoke(o, new AttributeModificationEvent(done, field.get(o)));
-                } catch (IllegalAccessException | InvocationTargetException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        }
     }
 
     @SuppressWarnings({"unchecked","rawtypes"})
@@ -261,7 +236,9 @@ public class PersistenceHandler {
                         throw new InvalidAnnotationException("Cannot have @Save on Field of type Class with null value.");
                     }
                     saveObjectOnClass(v, m, Context.STATIC, (Class<?>) v);
-                    map.put(name, m);
+                    VSONMapping mapping = new VSONMapping(m);
+                    mapping.info = new AnnotationAttrInfo(field.getAnnotation(Save.class));
+                    map.put(name,mapping);
                 } else {
                     try {
                         Object output = map(type, field.getAnnotation(Typing.class), field.get(o), field.isAnnotationPresent(Unmapped.class), field.isAnnotationPresent(Mapped.class), 0);

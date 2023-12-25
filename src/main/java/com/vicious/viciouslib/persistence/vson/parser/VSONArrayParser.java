@@ -16,7 +16,7 @@ public class VSONArrayParser extends VSONParser {
     public void start(InputStream fis){
         this.fis = fis;
         String value = "";
-        boolean isString = false;
+        ValueState state = ValueState.UNKNOWN;
         while(hasData()) {
             char c = read();
             //Skip Comments.
@@ -26,17 +26,17 @@ public class VSONArrayParser extends VSONParser {
                 }
                 continue;
             }
-            if(!isString && c == '{'){
+            if(state != ValueState.STRING && c == '{'){
                 VSONMap inner = new VSONMapParser(fis).getMap();
                 arr.addObject(inner);
                 value = "";
             }
-            else if (!isString && c == '['){
+            else if (state != ValueState.STRING && c == '['){
                 VSONArray array = new VSONArrayParser(fis).getArray();
                 arr.addObject(array);
                 value = "";
             }
-            else if(!isString && c == ']'){
+            else if(state != ValueState.STRING && c == ']'){
                 if(!value.isEmpty()) {
                     add(value);
                 }
@@ -48,11 +48,11 @@ public class VSONArrayParser extends VSONParser {
                 }
                 add(value);
                 value = "";
-                isString=false;
+                state = ValueState.UNKNOWN;
             }
             else{
-                if(c == '"'){
-                    isString=true;
+                if(!Character.isWhitespace(c) && state == ValueState.UNKNOWN) {
+                    state = c == '"' ? ValueState.STRING : ValueState.ANY;
                 }
                 value+=c;
             }
