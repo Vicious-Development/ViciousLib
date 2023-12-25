@@ -5,6 +5,7 @@ import com.vicious.viciouslib.persistence.storage.aunotamations.PersistentPath;
 import com.vicious.viciouslib.persistence.storage.aunotamations.Save;
 import com.vicious.viciouslib.persistence.storage.aunotamations.Typing;
 import com.vicious.viciouslib.persistence.storage.aunotamations.Unmapped;
+import com.vicious.viciouslib.persistence.vson.VSONMap;
 
 import java.util.*;
 
@@ -150,4 +151,7 @@ public class TestCFG {
 
     @Save
     public static String stringWithBracket = "hi";
+
+    @Save
+    public static VSONMap mapwithbadStrs = new VSONMap();
 }

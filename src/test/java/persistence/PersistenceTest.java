@@ -297,5 +297,20 @@ public class PersistenceTest {
         PersistenceHandler.save(TestCFG.class);
         PersistenceHandler.load(TestCFG.class);
         assertEquals("hi[bye]",TestCFG.stringWithBracket);
+        TestCFG.mapwithbadStrs.put("key1","hi[hujs]");
+        TestCFG.mapwithbadStrs.put("key2","hi{lks}");
+        PersistenceHandler.save(TestCFG.class);
+        PersistenceHandler.load(TestCFG.class);
+        assertEquals("hi[hujs]",TestCFG.mapwithbadStrs.get("key1").softAs(String.class));
+        assertEquals("hi{lks}",TestCFG.mapwithbadStrs.get("key2").softAs(String.class));
+    }
+
+    @Test
+    public void nonStaticConfigTest(){
+        InstantiatedConfig cfg = new InstantiatedConfig("tests/instantiated.txt");
+        cfg.one=1;
+        PersistenceHandler.save(cfg);
+        PersistenceHandler.load(cfg);
+        assertEquals(1,cfg.one);
     }
 }

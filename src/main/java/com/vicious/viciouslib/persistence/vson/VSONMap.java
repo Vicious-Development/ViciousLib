@@ -10,7 +10,7 @@ public class VSONMap extends LinkedHashMap<String, VSONMapping> {
     public String toString() {
         StringBuilder out = new StringBuilder();
         for (Map.Entry<String, VSONMapping> entry : entrySet()) {
-            out.append("\n").append(entry.getKey()).append(" = ").append(entry.getValue());
+            out.append("\n").append(entry.getKey()).append(" = ").append(entry.getValue().get());
         }
         return out.toString();
     }
