@@ -1,4 +1,5 @@
 # ViciousLib
+ViciousLib is a java library focused on providing useful features that simplify the coding process and reduce error.
 # General Features
 ## Annotated Persistence
 A powerful data serialization and deserialization system that uses annotations to automate logic. Allows making any object persistent without needing to implement any interfaces or super classes.
