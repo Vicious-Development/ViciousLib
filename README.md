@@ -6,7 +6,7 @@ A powerful data serialization and deserialization system that uses annotations t
 [Wiki Page](https://github.com/Vicious-Development/ViciousLib/wiki/Persistence)
 ## Command Handler
 A basic command handler implementation. Takes a command and arguments. Executes an action. Uses the Builder pattern for setup.
-(Wiki Page not yet added)
+[Wiki Page](https://github.com/Vicious-Development/ViciousLib/wiki/Command-Handler)
 ## Event Broadcasting
 Yes, this has been done before. This system allows calling methods on event objects. Uses a Reflective implementation to do so.
 [Wiki Page](https://github.com/Vicious-Development/ViciousLib/wiki/Event-Broadcasting)
