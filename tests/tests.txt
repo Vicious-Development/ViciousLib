@@ -7,7 +7,7 @@ intPos = -37242
 intNeg = 20
 longPos = -28923213321
 longNeg = 22139801
-floatPos = -21388.0
+floatPos = -248789.88
 floatNeg = 23812.213
 doublePos = -3242389.323287
 doubleNeg = 1.329801892979
@@ -48,12 +48,12 @@ end = {
 e = "THREE"
 fs = [
 	{
-		venus = -27
-		E-NAME = "SMACK"
-	}
-	{
 		venus = 3
 		E-NAME = "Wack"
+	}
+	{
+		venus = -27
+		E-NAME = "SMACK"
 	}
 	{
 		venus = 3
