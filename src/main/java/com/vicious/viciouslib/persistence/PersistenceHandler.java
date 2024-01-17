@@ -16,6 +16,7 @@ import com.vicious.viciouslib.util.reflect.ClassManifest;
 import com.vicious.viciouslib.util.reflect.deep.DeepReflection;
 
 import javax.annotation.Nonnull;
+import javax.naming.Context;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.*;
@@ -127,16 +128,27 @@ public class PersistenceHandler {
             }
             else if(mapping.get() instanceof VSONArray){
                 Collection collection = (Collection) defaultValue;
-                if(collection == null){
+                if (collection == null) {
                     collection = (Collection) SerializationHandler.initialize(type);
                 }
                 collection.clear();
                 Class<?> valType = typing.value()[ord];
                 for (VSONValue value : mapping.softAs(VSONArray.class)) {
-                    collection.add(unmap(valType,typing,value,null,forceUnmapped,forceUnmapped,ord+1));
+                    collection.add(unmap(valType, typing, value, null, forceUnmapped, forceUnmapped, ord + 1));
                 }
                 return collection;
             }
+        }
+        else if(type.isArray()){
+            Class<?> component = type.getComponentType();
+            VSONArray c = mapping.softAs(VSONArray.class);
+            Object array = Array.newInstance(component,c.size());
+            int i = 0;
+            for (VSONValue value : c) {
+                Array.set(array,i,unmap(component,typing,value,null,forceUnmapped,forceMapped,ord+1));
+                i++;
+            }
+            return array;
         }
         else{
             if((forceUnmapped || !ClassAnalyzer.analyzeClass(type).hasMembersWithAnnotation(Save.class) && Enum.class.isAssignableFrom(type))){
@@ -273,7 +285,16 @@ public class PersistenceHandler {
             VSONArray out = new VSONArray();
             Collection c = (Collection) val;
             for (Object value : c) {
-                out.addObject(map(typing.value()[ord],typing,value,forceUnmapped,forceMapped,ord+1));
+                out.addObject(map(typing.value()[ord], typing, value, forceUnmapped, forceMapped, ord + 1));
+            }
+            return out;
+        }
+        else if(type.isArray()){
+            Class<?> component = type.getComponentType();
+            VSONArray out = new VSONArray();
+            int len = Array.getLength(val);
+            for (int i = 0; i < len; i++) {
+                out.addObject(map(component, typing, Array.get(val,i), forceUnmapped, forceMapped, ord + 1));
             }
             return out;
         }
