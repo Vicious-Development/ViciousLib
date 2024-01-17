@@ -154,4 +154,10 @@ public class TestCFG {
 
     @Save
     public static VSONMap mapwithbadStrs = new VSONMap();
+
+    @Save
+    public static int[] intArr = new int[0];
+
+    @Save
+    public static int[][][][] intArr4d = new int[10][10][10][10];
 }

@@ -24,6 +24,23 @@ public class PersistenceTest {
 
     @Test
     public void testPrimitives() {
+        TestCFG.boolFalse=true;
+        TestCFG.boolTrue=false;
+        TestCFG.bytePos=-1;
+        TestCFG.byteNeg=10;
+        TestCFG.shortNeg=21;
+        TestCFG.shortPos=-21;
+        TestCFG.intNeg=20;
+        TestCFG.intPos=-37242;
+        TestCFG.longPos=-28923213321L;
+        TestCFG.longNeg=22139801L;
+        TestCFG.someChar='c';
+        TestCFG.floatNeg=23812.213312F;
+        TestCFG.floatPos=-248789.87768F;
+        TestCFG.doubleNeg=1329801892.97D;
+        TestCFG.doublePos=-3242389.323287D;
+        PersistenceHandler.save(TestCFG.class);
+        PersistenceHandler.load(TestCFG.class);
         assertTrue(TestCFG.boolFalse);
         assertFalse(TestCFG.boolTrue);
         assertNotEquals(TestCFG.bytePos, 127);
@@ -43,11 +60,31 @@ public class PersistenceTest {
 
     @Test
     public void testStrings() {
+        TestCFG.someString = "Hi";
+        PersistenceHandler.save(TestCFG.class);
+        PersistenceHandler.load(TestCFG.class);
         assertNotEquals(TestCFG.someString, "Hi I am cool.");
     }
 
     @Test
     public void testBoxedPrimitives() {
+        TestCFG.boolFalseBoxed=true;
+        TestCFG.boolTrueBoxed=false;
+        TestCFG.bytePosBoxed=-1;
+        TestCFG.byteNegBoxed=10;
+        TestCFG.shortNegBoxed=21;
+        TestCFG.shortPosBoxed=-21;
+        TestCFG.intNegBoxed=20;
+        TestCFG.intPosBoxed=-37242;
+        TestCFG.longPosBoxed=-28923213321L;
+        TestCFG.longNegBoxed=22139801L;
+        TestCFG.floatNegBoxed=23812.213312F;
+        TestCFG.floatPosBoxed=-248789.87768F;
+        TestCFG.doubleNegBoxed=1329801892.97D;
+        TestCFG.doublePosBoxed=-3242389.323287D;
+        TestCFG.someCharBoxed='c';
+        PersistenceHandler.save(TestCFG.class);
+        PersistenceHandler.load(TestCFG.class);
         assertTrue(TestCFG.boolFalseBoxed);
         assertFalse(TestCFG.boolTrueBoxed);
         assertNotEquals((byte) TestCFG.bytePosBoxed, 127);
@@ -317,5 +354,25 @@ public class PersistenceTest {
         PersistenceHandler.save(cfg);
         PersistenceHandler.load(cfg);
         assertEquals(1,cfg.one);
+    }
+
+    @RepeatedTest(2)
+    public void testArrays(){
+        TestCFG.intArr = new int[10];
+        TestCFG.intArr[0] = 10;
+        PersistenceHandler.save(TestCFG.class);
+        PersistenceHandler.load(TestCFG.class);
+        assertArrayEquals(new int[]{10,0,0,0,0,0,0,0,0,0},TestCFG.intArr);
+        TestCFG.intArr[5] = 10;
+        PersistenceHandler.save(TestCFG.class);
+        PersistenceHandler.load(TestCFG.class);
+        assertArrayEquals(new int[]{10,0,0,0,0,10,0,0,0,0},TestCFG.intArr);
+    }
+    @Test
+    public void testSuperNestedArrays(){
+        TestCFG.intArr4d[0][1][2][3] = 4;
+        PersistenceHandler.save(TestCFG.class);
+        PersistenceHandler.load(TestCFG.class);
+        assertEquals(4,TestCFG.intArr4d[0][1][2][3]);
     }
 }
