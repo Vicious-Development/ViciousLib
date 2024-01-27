@@ -3,5 +3,5 @@ map = {
 	two = "{k}jkj"
 	three = "keg[l]"
 	four = "[l]smeck"
-	yolo = "bolo"
+	yolo = "bo"lo"
 }

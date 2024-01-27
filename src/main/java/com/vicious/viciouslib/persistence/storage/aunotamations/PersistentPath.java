@@ -12,4 +12,6 @@ import java.lang.reflect.Modifier;
 @Target(ElementType.FIELD)
 @ModifiedWith(Modifier.PUBLIC)
 public @interface PersistentPath {
+    String format() default "VSON";
+    boolean compress() default false;
 }

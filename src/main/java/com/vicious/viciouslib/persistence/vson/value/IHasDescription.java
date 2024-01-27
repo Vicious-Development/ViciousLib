@@ -1,6 +1,8 @@
 package com.vicious.viciouslib.persistence.vson.value;
 
 public interface IHasDescription {
-    boolean hasDescription();
+    default boolean hasDescription(){
+        return getDescription() != null && !getDescription().isEmpty();
+    }
     String getDescription();
 }

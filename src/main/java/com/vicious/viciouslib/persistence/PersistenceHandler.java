@@ -1,17 +1,18 @@
 package com.vicious.viciouslib.persistence;
 
 import com.vicious.viciouslib.aunotamation.InvalidAnnotationException;
+import com.vicious.viciouslib.persistence.serialization.vson.VSONMapParser;
 import com.vicious.viciouslib.persistence.storage.AnnotationAttrInfo;
 import com.vicious.viciouslib.persistence.storage.aunotamations.*;
 import com.vicious.viciouslib.persistence.vson.SerializationHandler;
 import com.vicious.viciouslib.persistence.vson.VSONArray;
 import com.vicious.viciouslib.persistence.vson.VSONMap;
-import com.vicious.viciouslib.persistence.vson.parser.VSONMapParser;
 import com.vicious.viciouslib.persistence.vson.value.VSONMapping;
 import com.vicious.viciouslib.persistence.vson.value.VSONValue;
 import com.vicious.viciouslib.persistence.vson.writer.VSONWriter;
 import com.vicious.viciouslib.util.ClassAnalyzer;
 import com.vicious.viciouslib.util.FileUtil;
+import com.vicious.viciouslib.util.quick.ObjectMap;
 import com.vicious.viciouslib.util.reflect.ClassManifest;
 import com.vicious.viciouslib.util.reflect.deep.DeepReflection;
 
@@ -396,8 +397,8 @@ public class PersistenceHandler {
     public static VSONMap loadFromFile(String path){
         try {
             VSONMapParser parser = new VSONMapParser(path);
-            return parser.getMap();
-        } catch (FileNotFoundException ignored) {
+            return VSONMap.from(parser.getMap());
+        } catch (IOException ignored) {
             return null;
         }
     }
