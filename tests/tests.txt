@@ -48,16 +48,16 @@ end = {
 e = "THREE"
 fs = [
 	{
+		venus = 3
+		E-NAME = "CrAcK"
+	}
+	{
 		venus = -27
 		E-NAME = "SMACK"
 	}
 	{
 		venus = 3
 		E-NAME = "Wack"
-	}
-	{
-		venus = 3
-		E-NAME = "CrAcK"
 	}
 ]
 unmappedF = "CrAcK"

@@ -52,9 +52,9 @@ public class DeepReflection {
                     if(cls == null) return;
                     ClassLocation cl = new ClassLocation(reverseSubstring(reverseIndexOf('.',name),name),owner);
                     classMap.put(cl,cls);
-                } catch (ClassNotFoundException classNotFoundException) {
+                } catch (ClassNotFoundException ignored) {
                     //LoggerWrapper.logError("Failed to load a class that exists.");
-                    classNotFoundException.printStackTrace();
+                    //classNotFoundException.printStackTrace();
                 }
             });
         }
