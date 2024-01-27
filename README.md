@@ -17,7 +17,7 @@ Yes, this has been done before. This system allows calling methods on event obje
 repositories {
     maven {
         name = "ViciousLib"
-        url = uri("https://maven.pkg.github.com/Vicious-MCModding/ViciousLib")
+        url = uri("https://maven.pkg.github.com/Vicious-Development/ViciousLib")
         credentials {
             username = project.findProperty("gpr.user") ?: System.getenv("GPR_USER")
             password = project.findProperty("gpr.key") ?: System.getenv("GPR_API_KEY")
