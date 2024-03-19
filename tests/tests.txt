@@ -10,10 +10,10 @@ longNeg = 22139801
 floatPos = -21388.0
 floatNeg = 23812.213
 doublePos = -3242389.323287
-doubleNeg = 1.32980189297E9
+doubleNeg = 1.329801892979
 boolTrue = false
 boolFalse = true
-someChar = c
+someChar = 'c'
 someString = "Hi"
 bytePosBoxed = -1
 byteNegBoxed = 10
@@ -26,10 +26,10 @@ longNegBoxed = 22139801
 floatPosBoxed = -248789.88
 floatNegBoxed = 23812.213
 doublePosBoxed = -3242389.323287
-doubleNegBoxed = 1.32980189297E9
+doubleNegBoxed = 1.329801892979
 boolTrueBoxed = false
 boolFalseBoxed = true
-someCharBoxed = c
+someCharBoxed = 'c'
 a = {
 	a = 3
 }
@@ -48,16 +48,16 @@ end = {
 e = "THREE"
 fs = [
 	{
-		venus = -27
-		E-NAME = "SMACK"
+		venus = 3
+		E-NAME = "CrAcK"
 	}
 	{
 		venus = 3
 		E-NAME = "Wack"
 	}
 	{
-		venus = 3
-		E-NAME = "CrAcK"
+		venus = -27
+		E-NAME = "SMACK"
 	}
 ]
 unmappedF = "CrAcK"
@@ -110,14 +110,14 @@ superCursed = {
 	}
 }
 z = {
-	v = 9
-	c = true
-	b = -1
+	v = '6'
+	c = false
+	b = 978
 }
 z2 = {
-	v = 9
-	c = true
-	b = -1
+	v = 'f'
+	c = false
+	b = 78
 	VSONTYPE = "vicious.test.pz"
 }
 extendeds = [
@@ -130,7 +130,7 @@ extendeds = [
 		VSONTYPE = "vicious.test.py"
 	}
 	{
-		v = t
+		v = 't'
 		c = true
 		b = -1
 		VSONTYPE = "vicious.test.pz"

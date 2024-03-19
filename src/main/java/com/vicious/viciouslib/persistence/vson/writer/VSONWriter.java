@@ -58,14 +58,21 @@ public class VSONWriter {
         else{
             tab(tabs,builder);
             boolean string = value instanceof String;
+            boolean Char = value instanceof Character;
             if(string){
                 //Needed to prevent string read failure.
                 value = ((String)value).replaceAll("\"","\\\"");
                 builder.append('\"');
             }
+            if(Char){
+                builder.append('\'');
+            }
             builder.append(value);
             if(string) {
                 builder.append('\"');
+            }
+            if(Char){
+                builder.append('\'');
             }
             builder.append('\n');
         }

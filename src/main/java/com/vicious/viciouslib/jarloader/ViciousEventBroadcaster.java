@@ -7,7 +7,7 @@ import java.lang.reflect.Executable;
 public class ViciousEventBroadcaster implements InstanceEventBroadcaster {
     private final InterceptorMap globalInterceptors = new InterceptorMap();
 
-    private static final ViciousEventBroadcaster INSTANCE = new ViciousEventBroadcaster();
+    public static volatile ViciousEventBroadcaster INSTANCE = new ViciousEventBroadcaster();
 
     public static boolean post(Object object) {
         return get().send(object);

@@ -16,7 +16,7 @@ public class VSONValue implements IHasDescription,IHasChildren, Supplier<Object>
     protected List<NamePair> children;
 
     public VSONValue(Object o) {
-        this.value=o;
+        this(o,o.toString());
     }
     public VSONValue(Object o, String valueString) {
         this.value=o;
@@ -52,6 +52,7 @@ public class VSONValue implements IHasDescription,IHasChildren, Supplier<Object>
             return as(cls);
         } catch (ClassCastException e){
             if(cls.isEnum()){
+                System.out.println(cls + " : " + value);
                 return (V)Enum.valueOf((Class)cls,valueString);
             }
             if(value instanceof Number && Number.class.isAssignableFrom(cls)){

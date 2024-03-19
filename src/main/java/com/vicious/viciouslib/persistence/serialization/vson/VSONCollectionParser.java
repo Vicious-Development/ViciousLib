@@ -19,7 +19,9 @@ public class VSONCollectionParser implements CollectionParser {
             char c = (char) read();
             if(c == ',' || c == '\n'){
                 char l = skipWhiteSpace();
-                add(l);
+                if(add(l)){
+                    return;
+                }
             }
             else if(c == ']'){
                 return;
@@ -30,13 +32,15 @@ public class VSONCollectionParser implements CollectionParser {
         }
     }
 
-    private void add(char c){
+    private boolean add(char c){
         try {
             VSONObjectParser value = new VSONObjectParser(getInputStream(),c);
             Object obj = value.getObject();
             if(obj != VSONObjectParser.AssumedType.DELIMITER) {
                 getCollection().add(obj);
+                return false;
             }
+            return true;
         } catch (Exception e){
             throw new VSONException("could not parse array value", e);
         }
