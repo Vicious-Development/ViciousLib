@@ -23,7 +23,7 @@ repositories {
 
 group = 'vicious'
 
-version = '17-3.6.0'
+version = '17-3.6.2'
 
 dependencies {
     compileOnly 'org.json:json:20220320'
