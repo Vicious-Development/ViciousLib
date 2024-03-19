@@ -1,7 +1,7 @@
 map = {
+	yolo = "bo"lo"
+	four = "[l]smeck"
 	one = "kek{j}"
 	two = "{k}jkj"
 	three = "keg[l]"
-	four = "[l]smeck"
-	yolo = "bo"lo"
 }

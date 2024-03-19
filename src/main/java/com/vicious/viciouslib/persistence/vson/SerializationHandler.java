@@ -37,7 +37,7 @@ public class SerializationHandler {
         registerDeserializer(Boolean.class, SerializationHandler::booleanForm);
         registerDeserializer(boolean.class, SerializationHandler::booleanForm);
         registerHandler(String.class,(str)->str, s-> "\"" + s + "\"");
-        registerHandler(Character.class,s -> s.charAt(0), Object::toString);
+        registerHandler(Character.class,s -> s.charAt(1), c-> "'" + c + "'");
         registerHandler(char.class,s -> s.charAt(0), Object::toString);
         registerHandler(UUID.class,UUID::fromString,UUID::toString);
     }

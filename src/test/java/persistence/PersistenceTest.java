@@ -288,7 +288,7 @@ public class PersistenceTest {
         assertEquals(TestCFG.superCursed.get("hi").get(1D).get(2),3.1F);
     }
 
-   // @RepeatedTest(2)
+    @RepeatedTest(2)
     public void testExtendingSavables(){
         TestCFG.z.v='6';
         TestCFG.z.b=978;
@@ -374,5 +374,19 @@ public class PersistenceTest {
         PersistenceHandler.save(TestCFG.class);
         PersistenceHandler.load(TestCFG.class);
         assertEquals(4,TestCFG.intArr4d[0][1][2][3]);
+    }
+
+    @RepeatedTest(2)
+    public void testChildObjSaving(){
+        Child c = new Child();
+        assertEquals(1,c.i);
+        assertFalse(c.toggled);
+        c.i=2;
+        c.toggled=true;
+        c.save();
+        c = new Child();
+        c.load();
+        assertEquals(2,c.i);
+        assertTrue(c.toggled);
     }
 }

@@ -160,6 +160,7 @@ public class PersistenceHandler {
                 VSONMap internal = (VSONMap) mapping.get();
                 if(Enum.class.isAssignableFrom(type)){
                     String name = internal.get(SPECIAL_ENUM_KEY).softAs(String.class);
+                    //name = name.substring(1,name.length()-1);
                     Enum val = Enum.valueOf((Class)type,name);
                     loadObject(val,internal,Context.NONSTATIC);
                     return val;

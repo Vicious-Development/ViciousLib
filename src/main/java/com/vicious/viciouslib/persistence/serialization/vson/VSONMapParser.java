@@ -20,7 +20,7 @@ public class VSONMapParser implements MapParser {
         parse();
     }
     public VSONMapParser(String filePath) throws IOException {
-        inputStream = Files.newInputStream(Paths.get(filePath));
+        this(Files.newInputStream(Paths.get(filePath)));
     }
 
     public void parse(){
@@ -33,7 +33,13 @@ public class VSONMapParser implements MapParser {
                 String n = trimWhiteSpace(name.toString());
                 name = new StringBuilder();
                 try {
-                    getMap().put(n, value.getObject());
+                    Object obj = value.getObject();
+                    if(obj != VSONObjectParser.AssumedType.DELIMITER){
+                        getMap().put(n, obj);
+                    }
+                    else{
+                        return;
+                    }
                 } catch (Exception e){
                     throw new VSONException("could not parse map entry with key: " + n,e);
                 }
